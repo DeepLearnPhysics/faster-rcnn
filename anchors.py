@@ -2,7 +2,9 @@
 # Faster R-CNN
 # Copyright (c) 2015 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Ross Girshick and Sean Bell and Xinlei Chen and Kazuhiro Terao
+# Written by Ross Girshick and Sean Bell (https://github.com/rbgirshick/py-faster-rcnn)
+# Updated by Xinlei Chen (https://github.com/endernewton/tf-faster-rcnn)
+# Updated by Kazuhiro Terao (https://github.com/DeepLearnPhysics/faster-rcnn)
 # --------------------------------------------------------
 
 import numpy as np

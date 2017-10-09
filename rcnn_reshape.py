@@ -1,3 +1,12 @@
+# --------------------------------------------------------
+# Faster R-CNN
+# Copyright (c) 2015 Microsoft
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Ross Girshick and Sean Bell (https://github.com/rbgirshick/py-faster-rcnn)
+# Updated by Xinlei Chen (https://github.com/endernewton/tf-faster-rcnn)
+# Updated by Kazuhiro Terao (https://github.com/DeepLearnPhysics/faster-rcnn)
+# --------------------------------------------------------
+
 import tensorflow as tf
 
 def rcnn_layer_reshape_2d(bottom, num_dim, name):
@@ -7,8 +16,8 @@ def rcnn_layer_reshape_2d(bottom, num_dim, name):
         to_caffe = tf.transpose(bottom, [0, 3, 1, 2])
         # then force it to have channel 2, putting extra into "H" channel (default tf "NHWC")
         reshaped = tf.reshape(to_caffe,
-                              #tf.concat(axis=0, values=[[1, num_dim, -1], [input_shape[2]]]))
-                              tf.concat(axis=0, values=[[1, num_dim, -1], [32]]))
+                              tf.concat(axis=0, values=[[1, num_dim, -1], [input_shape[2]]]))
+                              #tf.concat(axis=0, values=[[1, num_dim, -1], [32]]))
         # then swap the channel back
         to_tf = tf.transpose(reshaped, [0, 2, 3, 1])
         return to_tf
@@ -20,8 +29,8 @@ def rcnn_layer_reshape_3d(bottom, num_dim, name):
         to_caffe = tf.transpose(bottom, [0, 4, 1, 2, 3])
         # then force it to have channel 2, putting extra into "D" channel (default tf "NDHWC")
         reshaped = tf.reshape(to_caffe,
-                              #tf.concat(axis=0, values=[[1, num_dim, -1], [input_shape[3]]]))
-                              tf.concat(axis=0, values=[[1, num_dim, -1], [32,48]]))
+                              tf.concat(axis=0, values=[[1, num_dim, -1], [input_shape[3]]]))
+                              #tf.concat(axis=0, values=[[1, num_dim, -1], [32,48]]))
         # then swap the channel back
         to_tf = tf.transpose(reshaped, [0, 2, 3, 4, 1])
         return to_tf
