@@ -13,8 +13,8 @@ from __future__ import print_function
 
 import numpy as np
 
-def generate_image_anchors_2d(width, height, total_strides, 
-                              anchor_scales=(8,16,32), anchor_ratios=(0.5,1,2)):
+def generate_anchors_2d(width, height, total_strides, 
+                        anchor_scales=(8,16,32), anchor_ratios=(0.5,1,2)):
   anchors = generate_base_anchors_2d(base_size=total_strides,
                                      ratios=np.array(anchor_ratios), 
                                      scales=np.array(anchor_scales))
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     print('generate_base_anchors(): {:g}'.format(dt))
     print('return anchors shown below\n{:s}\n'.format(a))
     t = time.time()
-    a,l = generate_image_anchors_2d(32,32,16)
+    a,l = generate_anchors_2d(32,32,16)
     dt = time.time() - t
     print('generate_base_anchors(): {:g}'.format(dt))
     print('return shape: {:s}\n'.format(np.array(a).shape))
