@@ -19,6 +19,7 @@ import numpy as np
 from config import cfg as DEFAULT_CFG
 from rcnn_reshape import regroup_rpn_channels_2d
 from rcnn_anchors import generate_anchors_2d
+from proposal_layer import proposal_layer_2d
 
 class rpn(object):
 
@@ -44,8 +45,10 @@ class rpn(object):
             height = tf.to_int32(tf.ceil(self._input_shape[1] / np.float32(self._total_stride[1])))
             width  = tf.to_int32(tf.ceil(self._input_shape[2] / np.float32(self._total_stride[2])))
             anchors, num_base_anchors = tf.py_func(generate_anchors_2d,
-                                                   [height,width,self._total_stride,self._cfg.ANCHOR_SCALES,self._cfg.ANCHOR_RATIOS],
-                                                   [tf.float32, tf.float32],
+                                                   [height, width, self._total_stride,
+                                                    np.array(self._cfg.ANCHOR_SCALES).astype(np.float32),
+                                                    np.array(self._cfg.ANCHOR_RATIOS).astype(np.float32)],
+                                                   [tf.float32, tf.int32],
                                                    name='generate_anchors_2d')
             # assert dimension
             anchors.set_shape([None,4])
@@ -66,6 +69,7 @@ class rpn(object):
         # 0) Convolution layer ... shared by RPN and detection
         # 1) Two parallel convolution layers ... 4k region proposals (bbox) and 2k object-ness classification (cls) 
         # 2) Reshaping + softmax + re-reshaping to get candidate ROIs
+        # 3) Select a sub-set of ROIs and scores from proposal_layer
         
         # Step 0) Convolution for RPN/Detection shared layer
         rpn = slim.conv2d(net, RPN_CHANNELS, [3, 3], 
@@ -97,10 +101,10 @@ class rpn(object):
         rpn_cls_prob = regroup_rpn_channels_2d(bottom=rpn_cls_prob_reshape, 
                                                num_dim=NUM_ANCHORS*2,
                                                name='rpn_cls_prob')
-        
-        # Step 2-d) Get a (meaningful) subset of rois and associated scores
+        rois,roi_scores = (None,None)
+        # Step 3) Get a (meaningful) subset of rois and associated scores
         if trainable:
-            rois, roi_scores = self._region_proposal(rpn_cls_prob, rpn_bbox_pred, "rois")
+            rois, roi_scores = self._proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred, trainable, "rois")
             pass
         elif TEST_MODE == 'nms':
             #rois, _ = self._proposal_layer(rpn_cls_prob, rpn_bbox_pred, "rois")
@@ -110,14 +114,22 @@ class rpn(object):
             pass
         else:
             raise NotImplementedError
+        return rois, roi_scores
 
-    def _region_proposal(self,rpn_cls_prob, rpn_bbox_pred, name):
-        return None,None
-        #TOTAL_STRIDE = 16
-        #ANCHORS = 
-        #with tf.variable_scope(name) as scope:
-        #    rois, rpn_scores = tf.py_func(region_proposal,
-        #                                  [rpn_cls_prob, rpn_bbox_pred, 
+    def _proposal_layer_2d(self,rpn_cls_prob, rpn_bbox_pred, trainable, name):
+        with tf.variable_scope(name) as scope:
+            rois, rpn_scores = tf.py_func(proposal_layer_2d,
+                                          [rpn_cls_prob, rpn_bbox_pred, self._input_shape,
+                                           self._total_stride, self._anchors, self._num_base_anchors,
+                                           self._num_base_anchors,
+                                           self._cfg.TRAIN.RPN_PRE_NMS_TOP_N,
+                                           self._cfg.TRAIN.RPN_POST_NMS_TOP_N,
+                                           self._cfg.TRAIN.RPN_NMS_THRESH],
+                                          [tf.float32, tf.float32], name="proposal")
+            rois.set_shape([None, 5])
+            rpn_scores.set_shape([None, 1])
+            
+        return rois, rpn_scores
 
 if __name__ == '__main__':
 
@@ -131,9 +143,20 @@ if __name__ == '__main__':
             image = tf.placeholder(tf.float32,[1,256,512,3])
             net.set_input_shape(image)
             net._generate_anchors_2d()
+            # Create a session
+            sess = tf.InteractiveSession()
+            # Initialize variables
+            sess.run(tf.global_variables_initializer())
+            ret = sess.run(net._anchors,feed_dict={})
+            print('{:s}'.format(ret))
         if sys.argv[1] == 'build':
             image = tf.placeholder(tf.float32,[1,256,512,3])
             net.set_input_shape(image)
             net._generate_anchors_2d()
             bottom = tf.placeholder(tf.float32,[1,16,32,64])
-            net.build(net=bottom, trainable=True)
+            roi,roi_scores = net.build(net=bottom, trainable=True)
+            # Create a session
+            sess = tf.InteractiveSession()
+            # Initialize variables
+            sess.run(tf.global_variables_initializer())
+            sess.run([roi,roi_scores],feed_dict={bottom:np.zeros((1,16,32,64),np.float32)})

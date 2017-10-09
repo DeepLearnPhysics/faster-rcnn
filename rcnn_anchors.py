@@ -13,18 +13,17 @@ from __future__ import print_function
 
 import numpy as np
 
-def generate_anchors_2d(width, height, total_strides, 
-                        anchor_scales=(8,16,32), anchor_ratios=(0.5,1,2)):
-  anchors = generate_base_anchors_2d(base_size=total_strides,
+def generate_anchors_2d(width, height, total_strides=[-1,16,16,-1],
+                        anchor_scales=[8,16,32], anchor_ratios=[0.5,1,2]):
+  anchors = generate_base_anchors_2d(base_size=total_strides[1:3],
                                      ratios=np.array(anchor_ratios), 
                                      scales=np.array(anchor_scales))
   #print('anchors {:s}'.format(anchors.shape))
   #print('width {:f}'.format(np.float32(width)))
   #print('height {:f}'.format(np.float32(height)))
-  #print('total_stride {:d}'.format(total_strides))
   A = anchors.shape[0]
-  shift_x = np.arange(0, width) * total_strides
-  shift_y = np.arange(0, height) * total_strides
+  shift_x = np.arange(0, width ) * total_strides[2]
+  shift_y = np.arange(0, height) * total_strides[1]
   #print('shift_x {:s}'.format(shift_x))
   #print('shift_y {:s}'.format(shift_y))
   shift_x, shift_y = np.meshgrid(shift_x, shift_y)
@@ -43,14 +42,14 @@ def generate_anchors_2d(width, height, total_strides,
   #print('# anchors {:d}'.format(length))
   return anchors, length
 
-def generate_base_anchors_2d(base_size=16, ratios=[0.5, 1, 2],
+def generate_base_anchors_2d(base_size=[16,16], ratios=[0.5, 1, 2],
                              scales=2**np.arange(3, 6)):
     """
     Generate anchor (reference) windows by enumerating aspect ratios X
     scales wrt a reference (0, 0, 15, 15) window.
     """
 
-    base_anchor = np.array([1, 1, base_size, base_size]) - 1
+    base_anchor = np.array((1, 1, base_size[0], base_size[1])) - 1
     ratio_anchors = _ratio_enum(base_anchor, ratios)
     anchors = np.vstack([_scale_enum(ratio_anchors[i, :], scales)
                          for i in xrange(ratio_anchors.shape[0])])
@@ -113,7 +112,7 @@ if __name__ == '__main__':
     print('generate_base_anchors(): {:g}'.format(dt))
     print('return anchors shown below\n{:s}\n'.format(a))
     t = time.time()
-    a,l = generate_anchors_2d(32,32,16)
+    a,l = generate_anchors_2d(32,32,[-1,16,16,-1])
     dt = time.time() - t
     print('generate_base_anchors(): {:g}'.format(dt))
     print('return shape: {:s}\n'.format(np.array(a).shape))
