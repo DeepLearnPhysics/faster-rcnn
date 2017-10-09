@@ -2,3 +2,5 @@
 *.root
 *.dat
 *.csv
+*.so
+nms/*.c
