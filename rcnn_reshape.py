@@ -2,14 +2,18 @@
 # Faster R-CNN
 # Copyright (c) 2015 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
-# Written by Ross Girshick and Sean Bell (https://github.com/rbgirshick/py-faster-rcnn)
-# Updated by Xinlei Chen (https://github.com/endernewton/tf-faster-rcnn)
-# Updated by Kazuhiro Terao (https://github.com/DeepLearnPhysics/faster-rcnn)
+# Original: Ross Girshick and Sean Bell (https://github.com/rbgirshick/py-faster-rcnn)
+# Updated: Xinlei Chen (https://github.com/endernewton/tf-faster-rcnn)
+# Updated: Kazuhiro Terao (https://github.com/DeepLearnPhysics/faster-rcnn)
+# in chronological order
 # --------------------------------------------------------
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import tensorflow as tf
 
-def rcnn_layer_reshape_2d(bottom, num_dim, name):
+def regroup_rpn_channels_2d(bottom, num_dim, name):
     input_shape = tf.shape(bottom)
     with tf.variable_scope(name) as scope:
         # change the channel to the caffe format
@@ -22,7 +26,7 @@ def rcnn_layer_reshape_2d(bottom, num_dim, name):
         to_tf = tf.transpose(reshaped, [0, 2, 3, 1])
         return to_tf
 
-def rcnn_layer_reshape_3d(bottom, num_dim, name):
+def regroup_rpn_channels_3d(bottom, num_dim, name):
     input_shape = tf.shape(bottom)
     with tf.variable_scope(name) as scope:
         # change the channel to the caffe format
@@ -37,10 +41,13 @@ def rcnn_layer_reshape_3d(bottom, num_dim, name):
 
 if __name__ == '__main__':
 
+    print('\033[95mTo get useful output comment-out line 19 and 32, and un-comment line 20 and 33\033[00m')
+
     bottom_2d = tf.placeholder(tf.float32,[1,16,32,3])
-    a2d = rcnn_layer_reshape_2d(bottom_2d, 2, "aho")
-    print a2d.shape
+    a2d = regroup_rpn_channels_2d(bottom_2d, 2, "aho")
+    print('regroup_rpn_channels_2d changed shape {:s} => {:s}'.format(bottom_2d.shape,a2d.shape))
 
     bottom_3d = tf.placeholder(tf.float32,[1,16,32,48,3])
-    a3d = rcnn_layer_reshape_3d(bottom_3d, 2, "aho")
-    print a3d.shape
+    a3d = regroup_rpn_channels_3d(bottom_3d, 2, "aho")
+    print('regroup_rpn_channels_3d changed shape {:s} => {:s}'.format(bottom_3d.shape,a3d.shape))
+
