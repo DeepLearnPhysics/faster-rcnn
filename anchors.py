@@ -13,38 +13,38 @@ from __future__ import print_function
 
 import numpy as np
 
-def generate_image_anchors(width, height, total_strides, 
-                           anchor_scales=(8,16,32), anchor_ratios=(0.5,1,2)):
-  anchors = generate_base_anchors(base_size=total_strides,
-                                  ratios=np.array(anchor_ratios), 
-                                  scales=np.array(anchor_scales))
-  print('anchors {:s}'.format(anchors.shape))
-  print('width {:f}'.format(np.float32(width)))
-  print('height {:f}'.format(np.float32(height)))
-  print('total_stride {:d}'.format(total_strides))
+def generate_image_anchors_2d(width, height, total_strides, 
+                              anchor_scales=(8,16,32), anchor_ratios=(0.5,1,2)):
+  anchors = generate_base_anchors_2d(base_size=total_strides,
+                                     ratios=np.array(anchor_ratios), 
+                                     scales=np.array(anchor_scales))
+  #print('anchors {:s}'.format(anchors.shape))
+  #print('width {:f}'.format(np.float32(width)))
+  #print('height {:f}'.format(np.float32(height)))
+  #print('total_stride {:d}'.format(total_strides))
   A = anchors.shape[0]
   shift_x = np.arange(0, width) * total_strides
   shift_y = np.arange(0, height) * total_strides
-  print('shift_x {:s}'.format(shift_x))
-  print('shift_y {:s}'.format(shift_y))
+  #print('shift_x {:s}'.format(shift_x))
+  #print('shift_y {:s}'.format(shift_y))
   shift_x, shift_y = np.meshgrid(shift_x, shift_y)
-  print('shift_x {:s}'.format(shift_x))
-  print('shift_y {:s}'.format(shift_y))
+  #print('shift_x {:s}'.format(shift_x))
+  #print('shift_y {:s}'.format(shift_y))
   shifts = np.vstack((shift_x.ravel(), shift_y.ravel(), shift_x.ravel(), shift_y.ravel())).transpose()
-  print('shifts {:s}'.format(shifts.shape))
+  #print('shifts {:s}'.format(shifts.shape))
   K = shifts.shape[0]
-  print('K={:d}, A={:d}'.format(K,A))
+  #print('K={:d}, A={:d}'.format(K,A))
   # width changes faster, so here it is H, W, C                                                                              
   anchors = anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
-  print('anchors {:s}'.format(anchors.shape))
+  #print('anchors {:s}'.format(anchors.shape))
   anchors = anchors.reshape((K * A, 4)).astype(np.float32, copy=False)
-  print('anchors {:s}'.format(anchors.shape))
+  #print('anchors {:s}'.format(anchors.shape))
   length = np.int32(anchors.shape[0])
-  print('# anchors {:d}'.format(length))
+  #print('# anchors {:d}'.format(length))
   return anchors, length
 
-def generate_base_anchors(base_size=16, ratios=[0.5, 1, 2],
-                          scales=2**np.arange(3, 6)):
+def generate_base_anchors_2d(base_size=16, ratios=[0.5, 1, 2],
+                             scales=2**np.arange(3, 6)):
     """
     Generate anchor (reference) windows by enumerating aspect ratios X
     scales wrt a reference (0, 0, 15, 15) window.
@@ -108,15 +108,13 @@ def _scale_enum(anchor, scales):
 if __name__ == '__main__':
     import time
     t = time.time()
-    a = generate_base_anchors()
+    a = generate_base_anchors_2d()
     dt = time.time() - t
-    print "generate_base_anchors():", dt
-    print a
-    print
+    print('generate_base_anchors(): {:g}'.format(dt))
+    print('return anchors shown below\n{:s}\n'.format(a))
     t = time.time()
-    a,l = generate_image_anchors(32,32,16)
+    a,l = generate_image_anchors_2d(32,32,16)
     dt = time.time() - t
-    print "generate_image_anchors():", dt
-    print np.array(a).shape
-    print
+    print('generate_base_anchors(): {:g}'.format(dt))
+    print('return shape: {:s}\n'.format(np.array(a).shape))
     #from IPython import embed; embed()
