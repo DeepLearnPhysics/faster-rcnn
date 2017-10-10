@@ -12,8 +12,8 @@ import os
 from config import cfg
 import numpy as np
 import numpy.random as npr
-from bbox.cython_bbox import bbox_overlaps
-from rcnn_bbox_transform import bbox_transform
+from rcnn_utils.bbox.cython_bbox import bbox_overlaps
+from rcnn_utils.bbox_transform import bbox_transform
 
 def anchor_target_layer_2d(height, width, gt_boxes, input_shape, _feat_stride, all_anchors, num_base_anchors):
   """Same as the anchor target layer in original Fast/er RCNN """

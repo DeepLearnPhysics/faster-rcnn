@@ -11,8 +11,8 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-from rcnn_bbox_transform import bbox_transform_inv, clip_boxes
-from nms_wrapper import nms
+from rcnn_utils.bbox_transform import bbox_transform_inv, clip_boxes
+from rcnn_utils.nms_wrapper import nms
 #import tensorflow as tf
 
 def proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred, 

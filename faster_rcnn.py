@@ -17,11 +17,11 @@ import numpy as np
 
 # faster-rcnn imports
 from config import cfg as DEFAULT_CFG
-from rcnn_reshape import regroup_rpn_channels_2d
-from rcnn_anchors import generate_anchors_2d
-from proposal_layer import proposal_layer_2d
-from anchor_target_layer import anchor_target_layer_2d
-from proposal_target_layer import proposal_target_layer_2d
+from rcnn_utils.reshape import regroup_rpn_channels_2d
+from rcnn_utils.anchors import generate_anchors_2d
+from rcnn_layers.proposal_layer import proposal_layer_2d
+from rcnn_layers.anchor_target_layer import anchor_target_layer_2d
+from rcnn_layers.proposal_target_layer import proposal_target_layer_2d
 
 class faster_rcnn(object):
 

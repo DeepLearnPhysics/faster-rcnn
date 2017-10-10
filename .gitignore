@@ -3,5 +3,5 @@
 *.dat
 *.csv
 *.so
-nms/*.c
-bbox/*.c
+rcnn_utils/nms/*.c
+rcnn_utils/bbox/*.c

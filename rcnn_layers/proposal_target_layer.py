@@ -11,8 +11,8 @@ from __future__ import print_function
 import numpy as np
 import numpy.random as npr
 from config import cfg
-from rcnn_bbox_transform import bbox_transform
-from bbox.cython_bbox import bbox_overlaps
+from rcnn_utils.bbox_transform import bbox_transform
+from rcnn_utils.bbox.cython_bbox import bbox_overlaps
 
 def proposal_target_layer_2d(rpn_rois, rpn_scores, gt_boxes, _num_classes):
   """

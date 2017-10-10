@@ -8,8 +8,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from nms.gpu_nms import gpu_nms
-from nms.cpu_nms import cpu_nms
+from rcnn_utils.nms.gpu_nms import gpu_nms
+from rcnn_utils.nms.cpu_nms import cpu_nms
 
 def nms(dets, thresh, gpu_id=0):
   """Dispatch to either CPU or GPU NMS implementations."""
