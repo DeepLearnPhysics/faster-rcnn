@@ -23,7 +23,7 @@ from proposal_layer import proposal_layer_2d
 from anchor_target_layer import anchor_target_layer_2d
 from proposal_target_layer import proposal_target_layer_2d
 
-class rpn(object):
+class faster_rcnn(object):
 
     def __init__(self):
         # variable holders (to be generated)
@@ -117,6 +117,15 @@ class rpn(object):
             pass
         else:
             raise NotImplementedError
+
+        #self._predictions["rpn_cls_score"] = rpn_cls_score
+        #self._predictions["rpn_cls_score_reshape"] = rpn_cls_score_reshape
+        #self._predictions["rpn_cls_prob"] = rpn_cls_prob
+        #self._predictions["rpn_cls_pred"] = rpn_cls_pred
+        #self._predictions["rpn_bbox_pred"] = rpn_bbox_pred
+        #self._predictions["rois"] = rois
+
+
         return rois, roi_scores
 
     #
@@ -211,7 +220,7 @@ if __name__ == '__main__':
         rpn()
         sys.exit(0)
     else:
-        net = rpn()
+        net = faster_rcnn()
         if sys.argv[1] == 'generate_anchors_2d':
             image = tf.placeholder(tf.float32,[1,256,512,3])
             net.set_input_shape(image)
