@@ -18,14 +18,14 @@ from nms_wrapper import nms
 def proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred, 
                       input_shape, total_stride, 
                       anchors, num_base_anchors,
-                      pre_nms_topN=-1, post_nms_topN=-1, nms_thresh=0.0):
+                      pre_nms_topN=-1, post_nms_topN=-1, nms_thresh=float(0.0)):
   """A simplified version compared to fast/er RCNN
      For details please see the technical report
   """
   # Get the scores and bounding boxes
   #print('\033[93mrpn_cls_prob \033[00m{:s}'.format(rpn_cls_prob.shape))
-  #print('num_anchors {:d}'.format(num_anchors))
-  scores = rpn_cls_prob[:, :, :, num_anchors:]
+  #print('num_base_anchors {:d}'.format(num_base_anchors))
+  scores = rpn_cls_prob[:, :, :, num_base_anchors:]
   #print('scores {:s}'.format(scores.shape))
   rpn_bbox_pred = rpn_bbox_pred.reshape((-1, 4))
   scores = scores.reshape((-1, 1))
@@ -34,7 +34,7 @@ def proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred,
   #print('rpn_bbox_pred {:s}'.format(rpn_bbox_pred.shape))
   proposals = bbox_transform_inv(anchors, rpn_bbox_pred)
   #print('proposals {:s}'.format(proposals.shape))
-  proposals = clip_boxes(proposals, im_info[:2])
+  proposals = clip_boxes(proposals, input_shape[1:3])
 
   # Pick the top region proposals
   order = scores.ravel().argsort()[::-1]
@@ -44,7 +44,7 @@ def proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred,
   scores = scores[order]
 
   # Non-maximal suppression
-  keep = nms(np.hstack((proposals, scores)), nms_thresh)
+  keep = nms(np.hstack((proposals, scores)), float(nms_thresh))
   #keep_max = len(proposals)
   #if post_nms_topN > 0:
   #  keep_max = post_nms_topN
