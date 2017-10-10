@@ -103,9 +103,10 @@ class faster_rcnn(object):
             #           probability (rpn_cls_prob)
             rois, roi_scores = self._proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred, trainable, "proposal_layer_2d")
 
-            # Step 3-b) Map RPN labels to ground-truth boxes
+            # Step 3-b) Map RPN labels to ground-truth boxes. rpn_labels.size == total # of anchors
             rpn_labels = self._anchor_target_layer_2d("anchor_target_layer_2d")
 
+            # Step 3-c) Anchor rois and roi_scores with ground truth
             with tf.control_dependencies([rpn_labels]):
                 rois, _ = self._proposal_target_layer_2d(rois, roi_scores, "proposal_target_layer_2d")
 

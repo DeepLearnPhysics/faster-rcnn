@@ -138,6 +138,8 @@ def anchor_target_layer_2d(height, width, gt_boxes, input_shape, _feat_stride, a
     .reshape((1, height, width, K * 4))
 
   rpn_bbox_outside_weights = bbox_outside_weights
+  print('rpn_labels @ anchor_target_layer: {:s}'.format(rpn_labels.shape))
+  print('rpn_bbox_targets @ anchor_target_layer: {:s}'.format(rpn_bbox_targets.shape))
   return rpn_labels, rpn_bbox_targets, rpn_bbox_inside_weights, rpn_bbox_outside_weights
 
 

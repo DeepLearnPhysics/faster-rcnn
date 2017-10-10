@@ -19,7 +19,9 @@ def proposal_target_layer_2d(rpn_rois, rpn_scores, gt_boxes, _num_classes):
   Assign object detection proposals to ground-truth targets. Produces proposal
   classification labels and bounding-box regression targets.
   """
-
+  print('proposal_target_layer_2d: received rpn_rois ..... {:s}'.format(rpn_rois.shape))
+  print('proposal_target_layer_2d: received rpn_scores ... {:s}'.format(rpn_scores.shape))
+  print('proposal_target_layer_2d: received gt_boxes.. ... {:s}'.format(gt_boxes.shape))
   # Proposal ROIs (0, x1, y1, x2, y2) coming from RPN
   # (i.e., rpn.proposal_layer.ProposalLayer), or any other source
   all_rois = rpn_rois
@@ -51,8 +53,8 @@ def proposal_target_layer_2d(rpn_rois, rpn_scores, gt_boxes, _num_classes):
   bbox_inside_weights = bbox_inside_weights.reshape(-1, _num_classes * 4)
   bbox_outside_weights = np.array(bbox_inside_weights > 0).astype(np.float32)
 
-  print('rois @ proposal_target_layer: {:s}'.format(labels))
-  print('labels @ proposal_target_layer: {:s}'.format(labels))
+  print('rois @ proposal_target_layer: {:s}'.format(labels.shape))
+  print('labels @ proposal_target_layer: {:s}'.format(labels.shape))
   
 
   return rois, roi_scores, labels, bbox_targets, bbox_inside_weights, bbox_outside_weights
