@@ -155,7 +155,8 @@ __C.TRAIN.RPN_FG_FRACTION = 0.5
 __C.TRAIN.RPN_BATCHSIZE = 256
 
 # NMS threshold used on RPN proposals
-__C.TRAIN.RPN_NMS_THRESH = 0.7
+#__C.TRAIN.RPN_NMS_THRESH = 0.7
+__C.TRAIN.RPN_NMS_THRESH = 1000.0
 
 # Number of top scoring boxes to keep before apply NMS to RPN proposals
 __C.TRAIN.RPN_PRE_NMS_TOP_N = 12000

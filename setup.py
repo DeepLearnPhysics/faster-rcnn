@@ -105,12 +105,12 @@ class custom_build_ext(build_ext):
         build_ext.build_extensions(self)
 
 ext_modules = [
-    #Extension(
-    #    "utils.cython_bbox",
-    #    ["utils/bbox.pyx"],
-    #    extra_compile_args={'gcc': ["-Wno-cpp", "-Wno-unused-function"]},
-    #    include_dirs = [numpy_include]
-    #),
+    Extension(
+        "bbox.cython_bbox",
+        ["bbox/bbox.pyx"],
+        extra_compile_args={'gcc': ["-Wno-cpp", "-Wno-unused-function"]},
+        include_dirs = [numpy_include]
+    ),
     Extension(
         "nms.cpu_nms",
         ["nms/cpu_nms.pyx"],
