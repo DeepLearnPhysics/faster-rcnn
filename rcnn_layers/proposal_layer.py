@@ -63,6 +63,6 @@ def proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred,
   # here we assume only-1-image-batch-size to initialize the array size
   batch_inds = np.zeros((proposals.shape[0], 1), dtype=np.float32)
   blob = np.hstack((batch_inds, proposals.astype(np.float32, copy=False)))
-
+  print('@end proposal_layer {:s}'.format(blob.shape))
   return blob, scores
 

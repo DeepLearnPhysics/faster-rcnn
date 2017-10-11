@@ -53,9 +53,8 @@ def proposal_target_layer_2d(rpn_rois, rpn_scores, gt_boxes, _num_classes):
   bbox_inside_weights = bbox_inside_weights.reshape(-1, _num_classes * 4)
   bbox_outside_weights = np.array(bbox_inside_weights > 0).astype(np.float32)
 
-  print('rois @ proposal_target_layer: {:s}'.format(labels.shape))
+  print('rois @ proposal_target_layer: {:s}'.format(rois.shape))
   print('labels @ proposal_target_layer: {:s}'.format(labels.shape))
-  
 
   return rois, roi_scores, labels, bbox_targets, bbox_inside_weights, bbox_outside_weights
 

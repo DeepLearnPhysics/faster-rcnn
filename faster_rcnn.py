@@ -52,9 +52,10 @@ class faster_rcnn(object):
     def set_input_shape(self,tensor):
         self._input_shape = tf.shape(tensor)
 
-    def build(self, net, trainable):
+    def _region_proposal(self, net, trainable, rcnn_initializer=None):
         TEST_MODE='nms'
-        INITIALIZER=tf.truncated_normal_initializer(mean=0.0, stddev=0.01)
+        if rcnn_initializer is None:
+            rcnn_initializer=tf.truncated_normal_initializer(mean=0.0, stddev=0.01)
 
         #
         # Step of operations:
@@ -68,17 +69,17 @@ class faster_rcnn(object):
                           self._cfg.TRAIN.RPN_BATCHSIZE, 
                           self._cfg.TRAIN.RPN_KERNELS,
                           trainable=trainable, 
-                          weights_initializer=INITIALIZER,
+                          weights_initializer=rcnn_initializer,
                           scope="rpn_conv/3x3")
         # Step 1-a) RPN 4k bbox prediction parameters
         rpn_bbox_pred = slim.conv2d(rpn, self._num_base_anchors * 4, [1, 1], 
                                     trainable=trainable,
-                                    weights_initializer=INITIALIZER,
+                                    weights_initializer=rcnn_initializer,
                                     padding='VALID', activation_fn=None, scope='rpn_bbox_pred')
         # Step 1-b) Generate 2k class scores
         rpn_cls_score = slim.conv2d(rpn, self._num_base_anchors * 2, [1, 1], 
                                     trainable=trainable,
-                                    weights_initializer=INITIALIZER,
+                                    weights_initializer=rcnn_initializer,
                                     padding='VALID', 
                                     activation_fn=None, 
                                     scope='rpn_cls_score')
@@ -111,11 +112,11 @@ class faster_rcnn(object):
                 rois, _ = self._proposal_target_layer_2d(rois, roi_scores, "proposal_target_layer_2d")
 
         elif TEST_MODE == 'nms':
-            #rois, _ = self._proposal_layer(rpn_cls_prob, rpn_bbox_pred, "rois")
-            pass
+            rois, _ = self._proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred, "proposal_layer_2d")
+
         elif TEST_MODE == 'top':
-            #rois, _ = self._proposal_top_layer(rpn_cls_prob, rpn_bbox_pred, "rois")
-            pass
+            #rois, _ = self._proposal_top_layer(rpn_cls_prob, rpn_bbox_pred, "proposal_layer_2d")
+            raise NotImplementedError
         else:
             raise NotImplementedError
 
@@ -126,8 +127,42 @@ class faster_rcnn(object):
         #self._predictions["rpn_bbox_pred"] = rpn_bbox_pred
         #self._predictions["rois"] = rois
 
+        return rois
 
-        return rois, roi_scores
+    def _head_to_tail(self,net,trainable=True):
+        net = tf.reshape(net,(self._cfg.TRAIN.BATCH_SIZE,-1),name='fake_head_to_tail')
+        return net
+
+    def _build(self, net, trainable=True):
+        # select initializers
+        if self._cfg.TRAIN.TRUNCATED:
+            initializer = tf.truncated_normal_initializer(mean=0.0, stddev=0.01)
+            initializer_bbox = tf.truncated_normal_initializer(mean=0.0, stddev=0.001)
+        else:
+            initializer = tf.random_normal_initializer(mean=0.0, stddev=0.01)
+            initializer_bbox = tf.random_normal_initializer(mean=0.0, stddev=0.001)
+            
+        #net = self._image_to_head(trainable)
+        with tf.variable_scope('faster_rcnn','faster_rcnn'):
+            # build the anchors for the image
+            self._generate_anchors_2d()
+            # region proposal network
+            rois = self._region_proposal(net, trainable, initializer)
+            # region of interest pooling
+            if self._cfg.POOLING_MODE == 'crop':
+                rpn_pooling = self._crop_pool_layer_2d(net, rois, "rpn_pooling")
+            else:
+                raise NotImplementedError
+
+        fc7 = self._head_to_tail(rpn_pooling, trainable)
+        with tf.variable_scope('faster_rcnn','faster_rcnn'):
+            # region classification
+            cls_prob, bbox_pred = self._region_classification_2d(fc7, trainable, 
+                                                                 initializer, initializer_bbox)
+
+        #self._score_summaries.update(self._predictions)
+
+        return rois, cls_prob, bbox_pred
 
     #
     # tf.py_func wrappers
@@ -214,6 +249,46 @@ class faster_rcnn(object):
 
             return rois, roi_scores
 
+    def _crop_pool_layer_2d(self, bottom, rois, name):
+        with tf.variable_scope(name) as scope:
+            print('{:s}'.format(rois))
+            print('rois shape @ crop_pool_layer_2d {:s}'.format(rois.shape))
+            batch_ids = tf.squeeze(tf.slice(rois, [0, 0], [-1, 1], name="batch_id"), [1])
+            # Get the normalized coordinates of bounding boxes
+            bottom_shape = tf.shape(bottom)
+            height = (tf.to_float(bottom_shape[1]) - 1.) * np.float32(self._total_stride[1])
+            width = (tf.to_float(bottom_shape[2]) - 1.) * np.float32(self._total_stride[2])
+            x1 = tf.slice(rois, [0, 1], [-1, 1], name="x1") / width
+            y1 = tf.slice(rois, [0, 2], [-1, 1], name="y1") / height
+            x2 = tf.slice(rois, [0, 3], [-1, 1], name="x2") / width
+            y2 = tf.slice(rois, [0, 4], [-1, 1], name="y2") / height
+            # Won't be back-propagated to rois anyway, but to save time
+            bboxes = tf.stop_gradient(tf.concat([y1, x1, y2, x2], axis=1))
+            pre_pool_size = self._cfg.POOLING_SIZE * 2
+            crops = tf.image.crop_and_resize(bottom, bboxes, 
+                                             tf.to_int32(batch_ids), [pre_pool_size, pre_pool_size], name="crops")
+
+        return slim.max_pool2d(crops, [2, 2], padding='SAME')
+
+    def _region_classification_2d(self, fc7, trainable, initializer, initializer_bbox):
+        cls_score = slim.fully_connected(fc7, self._num_classes, 
+                                         weights_initializer=initializer,
+                                         trainable=trainable,
+                                         activation_fn=None, scope='cls_score')
+        cls_prob = tf.nn.softmax(cls_score,name="cls_prob")
+        cls_pred = tf.argmax(cls_score, axis=1, name="cls_pred")
+        bbox_pred = slim.fully_connected(fc7, self._num_classes * 4, 
+                                         weights_initializer=initializer_bbox,
+                                         trainable=trainable,
+                                         activation_fn=None, scope='bbox_pred')
+
+        #self._predictions["cls_score"] = cls_score
+        #self._predictions["cls_pred"] = cls_pred
+        #self._predictions["cls_prob"] = cls_prob
+        #self._predictions["bbox_pred"] = bbox_pred
+
+        return cls_prob, bbox_pred
+
 if __name__ == '__main__':
 
     import sys
@@ -225,25 +300,39 @@ if __name__ == '__main__':
         if sys.argv[1] == 'generate_anchors_2d':
             image = tf.placeholder(tf.float32,[1,256,512,3])
             net.set_input_shape(image)
-            net._generate_anchors_2d()
             # Create a session
             sess = tf.InteractiveSession()
             # Initialize variables
             sess.run(tf.global_variables_initializer())
             ret = sess.run(net._anchors,feed_dict={})
             print('{:s}'.format(ret))
-        if sys.argv[1] == 'build':
+        if sys.argv[1] == 'rpn':
             # create a 0-filled image tensor
             image = tf.placeholder(tf.float32,[1,256,512,3])
             net.set_input_shape(image)
             net._generate_anchors_2d()
             # create a 0-filled feature map for rpn
             bottom = tf.placeholder(tf.float32,[1,16,32,64])
-            roi,roi_scores = net.build(net=bottom, trainable=True)
+            roi = net._region_proposal(net=bottom, trainable=True)
             # Create a session
             sess = tf.InteractiveSession()
             # Initialize variables
             sess.run(tf.global_variables_initializer())
-            sess.run([roi,roi_scores], 
+            sess.run([roi],
+                     feed_dict = { bottom:np.zeros((1,16,32,64),np.float32),
+                                   net._gt_boxes:np.array(((1,10,10,20,20),)) } )
+        if sys.argv[1] == 'build':
+            # create a 0-filled image tensor
+            image = tf.placeholder(tf.float32,[1,256,512,3])
+            net.set_input_shape(image)
+            #net._generate_anchors_2d()
+            # create a 0-filled feature map for rpn
+            bottom = tf.placeholder(tf.float32,[1,16,32,64])
+            roi,cls_prob, bbox_pred = net._build(net=bottom, trainable=True)
+            # Create a session
+            sess = tf.InteractiveSession()
+            # Initialize variables
+            sess.run(tf.global_variables_initializer())
+            sess.run([roi,cls_prob,bbox_pred], 
                      feed_dict = { bottom:np.zeros((1,16,32,64),np.float32),
                                    net._gt_boxes:np.array(((1,10,10,20,20),)) } )
