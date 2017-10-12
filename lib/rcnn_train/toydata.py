@@ -35,7 +35,7 @@ class toydata_gen(object):
     def set_rect(self,mean,std,width,height):
         (self.rect_num_mean,self.rect_num_std,self.rect_length0,self.rect_length1) = (mean,std,width,height)
 
-    def forward(self,debug=False):
+    def make_data(self,debug=False):
         """makes 512 x 512 images with normally distributed # of lines, squares, and rectangles
         of given sizes at uniformly distributed locations"""
 
@@ -92,6 +92,14 @@ class toydata_gen(object):
             rois.append([x1,y1,x2,y2,2])    
 
         return fig,rois
+
+    def forward(self):
+        blob = {}
+        img, roi = make_data()
+        blob['data'] = img
+        blob['im_info'] = [1,self.image_height,self.image_width,1]
+        blob['gt_boxes'] = roi
+        return blob
 
 if __name__ == '__main__':
     g = toydata_gen()
