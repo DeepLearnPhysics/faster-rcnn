@@ -92,8 +92,8 @@ class faster_rcnn(object):
 
         self._num_anchors = self._num_scales * self._num_ratios
 
-        training = mode == 'TRAIN'
-        testing = mode == 'TEST'
+        training = (mode == 'TRAIN')
+        testing = (mode == 'TEST')
 
         #assert tag != None
 
@@ -239,7 +239,7 @@ class faster_rcnn(object):
             initializer = tf.random_normal_initializer(mean=0.0, stddev=0.01)
             initializer_bbox = tf.random_normal_initializer(mean=0.0, stddev=0.001)
             
-        #net = self._image_to_head(trainable)
+        net = self._image_to_head(trainable)
         with tf.variable_scope('faster_rcnn','faster_rcnn'):
             # build the anchors for the image
             self._generate_anchors_2d()
