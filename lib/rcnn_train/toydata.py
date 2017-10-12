@@ -71,8 +71,8 @@ class toydata_gen(object):
         
         # draw left-diagonal lines
         for line_i in range(lineN):
-            fig[ [range(int(linePos[line_i][1]), int(linePos[line_i][1]+lineL/2**0.5))  ],
-                 [range(int(linePos[line_i][0]), int(linePos[line_i][0]+lineL/2**0.5))  ] ] = 1
+            fig[ [range(int(linePos[line_i][1]), int(linePos[line_i][1]+self.line_length/2**0.5))  ],
+                 [range(int(linePos[line_i][0]), int(linePos[line_i][0]+self.line_length/2**0.5))  ] ] = 1
             
         for sq_i in range(sqN):
             x1,y1 = (int(sqPos[sq_i][0]),int(sqPos[sq_i][1]))
@@ -83,14 +83,14 @@ class toydata_gen(object):
         for rec_i in range(recN):
             x1,y1 = (int(recPos[rec_i][0]),int(recPos[rec_i][1]))
             x2,y2 = (x1 + self.rect_length0, y1+self.rect_length1)
-            fig[y1:y2,x1,x2] = 1
+            fig[y1:y2,x1:x2] = 1
             rois.append([x1,y1,x2,y2,2])    
 
-        return fig,roi
+        return fig,rois
 
 if __name__ == '__main__':
     g = toydata_gen()
-    fig,roi = g.forward()
+    fig,rois = g.forward()
     #plt.imshow(fig)
     im.imsave('imdata.png', fig)
-    print roi
+    print rois
