@@ -463,6 +463,18 @@ class faster_rcnn(object):
 
         return cls_prob, bbox_pred
 
+    def train_step(self, sess, blobs, train_op):
+        feed_dict = {self._image: blobs['data'], self._im_info: blobs['im_info'],
+                 self._gt_boxes: blobs['gt_boxes']}
+        rpn_loss_cls, rpn_loss_box, loss_cls, loss_box, loss, _ = sess.run([self._losses["rpn_cross_entropy"],
+                                                                        self._losses['rpn_loss_box'],
+                                                                        self._losses['cross_entropy'],
+                                                                        self._losses['loss_box'],
+                                                                        self._losses['total_loss'],
+                                                                        train_op],
+                                                                       feed_dict=feed_dict)
+        return rpn_loss_cls, rpn_loss_box, loss_cls, loss_box, loss
+
     def train_step_with_summary(self, sess, blobs, train_op):
         feed_dict = {self._image: blobs['data'], self._input_shape: blobs['im_info'],
                      self._gt_boxes: blobs['gt_boxes']}
