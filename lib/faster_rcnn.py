@@ -44,6 +44,17 @@ class faster_rcnn(object):
         self._anchor_targets={}
         self._proposal_targets={}
         self._losses = {}
+        # summary holders
+        self._event_summaries = {}
+        self._score_summaries = {}
+        self._train_summaries = []
+        #self._act_summaries = []
+
+    def _add_score_summary(self, key, tensor):
+        tf.summary.histogram('SCORE/' + tensor.op.name + '/' + key + '/scores', tensor)
+
+    def _add_train_summary(self, var):
+        tf.summary.histogram('TRAIN/' + var.op.name, var)
 
     def configure(self,fname):
         import config
@@ -53,8 +64,8 @@ class faster_rcnn(object):
     def set_input_shape(self,tensor):
         self._input_shape = tf.shape(tensor)
 
-    def create_architecture(self, net, mode, num_classes, tag=None,
-                            anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
+    def create_architecture(self,net,  mode, num_classes, tag=None,
+                          anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
         self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
         self._im_info = tf.placeholder(tf.float32, shape=[3])
         self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
@@ -92,6 +103,10 @@ class faster_rcnn(object):
 
         layers_to_output = {'rois': rois}
 
+        # add train summary
+        for var in tf.trainable_variables():
+            self._train_summaries.append(var)
+
         #for var in tf.trainable_variables():
         #    self._train_summaries.append(var)
 
@@ -104,20 +119,20 @@ class faster_rcnn(object):
             self._add_losses()
             layers_to_output.update(self._losses)
 
-            #val_summaries = []
-            #with tf.device("/cpu:0"):
-            #    val_summaries.append(self._add_gt_image_summary())
-            #    for key, var in self._event_summaries.items():
-            #        val_summaries.append(tf.summary.scalar(key, var))
-            #    for key, var in self._score_summaries.items():
-            #        self._add_score_summary(key, var)
+            val_summaries = []
+            with tf.device("/cpu:0"):
+                #val_summaries.append(self._add_gt_image_summary())
+                for key, var in self._event_summaries.items():
+                    val_summaries.append(tf.summary.scalar(key, var))
+                for key, var in self._score_summaries.items():
+                    self._add_score_summary(key, var)
             #    for var in self._act_summaries:
             #        self._add_act_summary(var)
-            #    for var in self._train_summaries:
-            #        self._add_train_summary(var)
+                for var in self._train_summaries:
+                    self._add_train_summary(var)
 
-            #self._summary_op = tf.summary.merge_all()
-            #self._summary_op_val = tf.summary.merge(val_summaries)
+            self._summary_op = tf.summary.merge_all()
+            self._summary_op_val = tf.summary.merge(val_summaries)
 
         layers_to_output.update(self._predictions)
 
@@ -441,6 +456,19 @@ class faster_rcnn(object):
         self._predictions["bbox_pred"] = bbox_pred
 
         return cls_prob, bbox_pred
+
+    def train_step_with_summary(self, sess, blobs, train_op):
+        feed_dict = {self._image: blobs['data'], self._im_info: blobs['im_info'],
+                     self._gt_boxes: blobs['gt_boxes']}
+        rpn_loss_cls, rpn_loss_box, loss_cls, loss_box, loss, summary, _ = sess.run([self._losses["rpn_cross_entropy"],
+                                                                                 self._losses['rpn_loss_box'],
+                                                                                 self._losses['cross_entropy'],
+                                                                                 self._losses['loss_box'],
+                                                                                 self._losses['total_loss'],
+                                                                                 self._summary_op,
+                                                                                 train_op],
+                                                                                feed_dict=feed_dict)
+        return rpn_loss_cls, rpn_loss_box, loss_cls, loss_box, loss, summary
 
 if __name__ == '__main__':
 
