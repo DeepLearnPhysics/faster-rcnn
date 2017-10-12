@@ -33,6 +33,7 @@ class faster_rcnn(object):
         # variable holders (to be specified via user/data)
         #self._input_data = tf.placeholder(tf.float32, shape=[1, None, None, 3])
         #self._im_info = tf.placeholder(tf.float32, shape=[3])
+        self._image = None
         self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
         self._input_shape  = []
         self._total_stride = [-1,16,16,-1]
@@ -463,7 +464,7 @@ class faster_rcnn(object):
         return cls_prob, bbox_pred
 
     def train_step_with_summary(self, sess, blobs, train_op):
-        feed_dict = {self._image: blobs['data'], self._im_info: blobs['im_info'],
+        feed_dict = {self._image: blobs['data'], self._input_shape: blobs['im_info'],
                      self._gt_boxes: blobs['gt_boxes']}
         rpn_loss_cls, rpn_loss_box, loss_cls, loss_box, loss, summary, _ = sess.run([self._losses["rpn_cross_entropy"],
                                                                                  self._losses['rpn_loss_box'],
