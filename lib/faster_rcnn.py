@@ -50,12 +50,82 @@ class faster_rcnn(object):
         self._cfg = config.cfg_from_file(fname)
         self._configure()
 
+    def set_input_shape(self,tensor):
+        self._input_shape = tf.shape(tensor)
+
+    def create_architecture(self, net, mode, num_classes, tag=None,
+                            anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
+        self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
+        self._im_info = tf.placeholder(tf.float32, shape=[3])
+        self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
+        #self._tag = tag
+
+        self._num_classes = num_classes
+        self._mode = mode
+        self._anchor_scales = anchor_scales
+        self._num_scales = len(anchor_scales)
+
+        self._anchor_ratios = anchor_ratios
+        self._num_ratios = len(anchor_ratios)
+
+        self._num_anchors = self._num_scales * self._num_ratios
+
+        training = mode == 'TRAIN'
+        testing = mode == 'TEST'
+
+        #assert tag != None
+
+        # handle most of the regularizers here
+        weights_regularizer = tf.contrib.layers.l2_regularizer(self._cfg.TRAIN.WEIGHT_DECAY)
+        if self._cfg.TRAIN.BIAS_DECAY:
+            biases_regularizer = weights_regularizer
+        else:
+            biases_regularizer = tf.no_regularizer
+
+        # list as many types of layers as possible, even if they are not used now
+        with arg_scope([slim.conv2d, slim.conv2d_in_plane, \
+                    slim.conv2d_transpose, slim.separable_conv2d, slim.fully_connected], 
+                    weights_regularizer=weights_regularizer,
+                    biases_regularizer=biases_regularizer, 
+                    biases_initializer=tf.constant_initializer(0.0)): 
+            rois, cls_prob, bbox_pred = self._build_network(net=net, trainable=training)
+
+        layers_to_output = {'rois': rois}
+
+        #for var in tf.trainable_variables():
+        #    self._train_summaries.append(var)
+
+        if testing:
+            stds = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_STDS), (self._num_classes))
+            means = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_MEANS), (self._num_classes))
+            self._predictions["bbox_pred"] *= stds
+            self._predictions["bbox_pred"] += means
+        else:
+            self._add_losses()
+            layers_to_output.update(self._losses)
+
+            #val_summaries = []
+            #with tf.device("/cpu:0"):
+            #    val_summaries.append(self._add_gt_image_summary())
+            #    for key, var in self._event_summaries.items():
+            #        val_summaries.append(tf.summary.scalar(key, var))
+            #    for key, var in self._score_summaries.items():
+            #        self._add_score_summary(key, var)
+            #    for var in self._act_summaries:
+            #        self._add_act_summary(var)
+            #    for var in self._train_summaries:
+            #        self._add_train_summary(var)
+
+            #self._summary_op = tf.summary.merge_all()
+            #self._summary_op_val = tf.summary.merge(val_summaries)
+
+        layers_to_output.update(self._predictions)
+
+        return layers_to_output
+
     def _configure(self):
         # post-action after changing configuration
         self._num_base_anchors = len(self._cfg.ANCHOR_SCALES) * len(self._cfg.ANCHOR_RATIOS)
-
-    def set_input_shape(self,tensor):
-        self._input_shape = tf.shape(tensor)
 
     def _region_proposal(self, net, trainable, rcnn_initializer=None):
         TEST_MODE='nms'
@@ -352,76 +422,6 @@ class faster_rcnn(object):
                                              tf.to_int32(batch_ids), [pre_pool_size, pre_pool_size], name="crops")
 
         return slim.max_pool2d(crops, [2, 2], padding='SAME')
-
-    def create_architecture(self,net,  mode, num_classes, tag=None,
-                          anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
-        self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
-        self._im_info = tf.placeholder(tf.float32, shape=[3])
-        self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
-        #self._tag = tag
-
-        self._num_classes = num_classes
-        self._mode = mode
-        self._anchor_scales = anchor_scales
-        self._num_scales = len(anchor_scales)
-
-        self._anchor_ratios = anchor_ratios
-        self._num_ratios = len(anchor_ratios)
-
-        self._num_anchors = self._num_scales * self._num_ratios
-
-        training = mode == 'TRAIN'
-        testing = mode == 'TEST'
-
-        #assert tag != None
-
-        # handle most of the regularizers here
-        weights_regularizer = tf.contrib.layers.l2_regularizer(self._cfg.TRAIN.WEIGHT_DECAY)
-        if self._cfg.TRAIN.BIAS_DECAY:
-            biases_regularizer = weights_regularizer
-        else:
-            biases_regularizer = tf.no_regularizer
-
-        # list as many types of layers as possible, even if they are not used now
-        with arg_scope([slim.conv2d, slim.conv2d_in_plane, \
-                    slim.conv2d_transpose, slim.separable_conv2d, slim.fully_connected], 
-                    weights_regularizer=weights_regularizer,
-                    biases_regularizer=biases_regularizer, 
-                    biases_initializer=tf.constant_initializer(0.0)): 
-            rois, cls_prob, bbox_pred = self._build_network(net=net, trainable=training)
-
-        layers_to_output = {'rois': rois}
-
-        #for var in tf.trainable_variables():
-        #    self._train_summaries.append(var)
-
-        if testing:
-            stds = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_STDS), (self._num_classes))
-            means = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_MEANS), (self._num_classes))
-            self._predictions["bbox_pred"] *= stds
-            self._predictions["bbox_pred"] += means
-        else:
-            self._add_losses()
-            layers_to_output.update(self._losses)
-
-            #val_summaries = []
-            #with tf.device("/cpu:0"):
-            #    val_summaries.append(self._add_gt_image_summary())
-            #    for key, var in self._event_summaries.items():
-            #        val_summaries.append(tf.summary.scalar(key, var))
-            #    for key, var in self._score_summaries.items():
-            #        self._add_score_summary(key, var)
-            #    for var in self._act_summaries:
-            #        self._add_act_summary(var)
-            #    for var in self._train_summaries:
-            #        self._add_train_summary(var)
-
-            #self._summary_op = tf.summary.merge_all()
-            #self._summary_op_val = tf.summary.merge(val_summaries)
-
-        layers_to_output.update(self._predictions)
-
-        return layers_to_output
 
     def _region_classification_2d(self, fc7, trainable, initializer, initializer_bbox):
         cls_score = slim.fully_connected(fc7, self._num_classes, 
