@@ -18,6 +18,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import _init_paths
+
 import os
 import os.path as osp
 import numpy as np
@@ -278,7 +280,8 @@ __C.PIXEL_MEANS = np.array([[[102.9801, 115.9465, 122.7717]]])
 __C.RNG_SEED = 3
 
 # Root directory of project
-__C.ROOT_DIR = osp.abspath(osp.join(osp.dirname(__file__), '..', '..'))
+#__C.ROOT_DIR = osp.abspath(osp.join(osp.dirname(__file__), '..', '..'))
+__C.ROOT_DIR = osp.abspath(os.environ['RCNNDIR'])
 
 # Data directory
 __C.DATA_DIR = osp.abspath(osp.join(__C.ROOT_DIR, 'data'))
