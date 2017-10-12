@@ -72,9 +72,9 @@ class toydata_gen(object):
             print "recPos: ", recPos
         
         # draw left-diagonal lines
-        #for line_i in range(lineN):
-        #    fig[ [range(int(linePos[line_i][1]), int(linePos[line_i][1]+lineL/2**0.5))  ],
-        #         [range(int(linePos[line_i][0]), int(linePos[line_i][0]+lineL/2**0.5))  ] ] = 1
+        for line_i in range(lineN):
+            fig[ [range(int(linePos[line_i][1]), int(linePos[line_i][1]+self.line_length/2**0.5))  ],
+                 [range(int(linePos[line_i][0]), int(linePos[line_i][0]+self.line_length/2**0.5))  ] ] = 1
             
         for sq_i in range(sqN):
             x1,y1 = (int(sqPos[sq_i][0]),int(sqPos[sq_i][1]))
@@ -92,7 +92,7 @@ class toydata_gen(object):
 
 if __name__ == '__main__':
     g = toydata_gen()
-    fig,roi = g.forward()
+    fig,rois = g.forward()
     #plt.imshow(fig)
     im.imsave('imdata.png', fig)
-    print roi
+    print rois
