@@ -1,3 +1,9 @@
+import sys,os
+
+lib_path = os.path.join(os.environ['RCNNDIR'],'lib')
+if not lib_path in sys.path:
+    sys.path.insert(0,lib_path)
+
 from rcnn_train.trainer import train_net
 from rcnn_train.toydata import toydata_gen
 from vgg_faster_rcnn import vgg
