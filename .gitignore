@@ -3,5 +3,10 @@
 *.dat
 *.csv
 *.so
-rcnn_utils/nms/*.c
-rcnn_utils/bbox/*.c
+*.png
+*.jpg
+lib/datasets/pycocotools/_mask.c
+lib/rcnn_utils/nms/*.c
+lib/rcnn_utils/bbox/*.c
+data/*
+

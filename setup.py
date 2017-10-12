@@ -106,19 +106,25 @@ class custom_build_ext(build_ext):
 
 ext_modules = [
     Extension(
-        "rcnn_utils.bbox.cython_bbox",
-        ["rcnn_utils/bbox/bbox.pyx"],
+        'lib.datasets.pycocotools._mask',
+        sources=['lib/datasets/pycocotools/maskApi.c', 'lib/datasets/pycocotools/_mask.pyx'],
+        extra_compile_args={'gcc': ['-Wno-cpp', '-Wno-unused-function', '-std=c99']},
+        include_dirs = [numpy_include],
+    ),
+    Extension(
+        "lib.rcnn_utils.bbox.cython_bbox",
+        ["lib/rcnn_utils/bbox/bbox.pyx"],
         extra_compile_args={'gcc': ["-Wno-cpp", "-Wno-unused-function"]},
         include_dirs = [numpy_include]
     ),
     Extension(
-        "rcnn_utils.nms.cpu_nms",
-        ["rcnn_utils/nms/cpu_nms.pyx"],
+        "lib.rcnn_utils.nms.cpu_nms",
+        ["lib/rcnn_utils/nms/cpu_nms.pyx"],
         extra_compile_args={'gcc': ["-Wno-cpp", "-Wno-unused-function"]},
         include_dirs = [numpy_include]
     ),
-    Extension('rcnn_utils.nms.gpu_nms',
-        ['rcnn_utils/nms/nms_kernel.cu', 'rcnn_utils/nms/gpu_nms.pyx'],
+    Extension('lib.rcnn_utils.nms.gpu_nms',
+        ['lib/rcnn_utils/nms/nms_kernel.cu', 'lib/rcnn_utils/nms/gpu_nms.pyx'],
         library_dirs=[CUDA['lib64']],
         libraries=['cudart'],
         language='c++',

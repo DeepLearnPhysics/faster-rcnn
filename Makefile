@@ -3,4 +3,7 @@ all:
 	rm -rf build
 clean:
 	rm -rf */*.pyc
-	rm -rf */*.so
+	rm -rf */*/*.pyc
+	rm -rf */*/*/*.pyc
+	rm -rf */*/*.so
+	rm -rf */*/*/*.so
