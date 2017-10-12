@@ -35,7 +35,7 @@ class faster_rcnn(object):
         #self._im_info = tf.placeholder(tf.float32, shape=[3])
         self._image = None
         self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
-        self._input_shape  = []
+        self._input_shape  = tf.placeholder(tf.float32,[4])
         self._total_stride = [-1,16,16,-1]
         # configuration parameter holders
         self._cfg = DEFAULT_CFG
