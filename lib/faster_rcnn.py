@@ -75,8 +75,8 @@ class faster_rcnn(object):
         except Exception:
             self._input_shape = np.shape(tensor)
 
-    def create_architecture(self,net, num_classes, mode='TRAIN', tag=None,
-                          anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
+    def create_architecture(self, num_classes, mode='TRAIN', tag=None,
+                            anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
         self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
         self._im_info = tf.placeholder(tf.float32, shape=[3])
         self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
@@ -110,7 +110,7 @@ class faster_rcnn(object):
                     weights_regularizer=weights_regularizer,
                     biases_regularizer=biases_regularizer, 
                     biases_initializer=tf.constant_initializer(0.0)): 
-            rois, cls_prob, bbox_pred = self._build_network(net=net, trainable=training)
+            rois, cls_prob, bbox_pred = self._build_network(trainable=training)
 
         layers_to_output = {'rois': rois}
 
@@ -230,7 +230,7 @@ class faster_rcnn(object):
 
         return rois
 
-    def _build_network(self, net, trainable=True):
+    def _build_network(self, trainable=True):
         # select initializers
         if self._cfg.TRAIN.TRUNCATED:
             initializer = tf.truncated_normal_initializer(mean=0.0, stddev=0.01)

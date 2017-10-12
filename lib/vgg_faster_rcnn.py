@@ -41,14 +41,14 @@ class vgg(faster_rcnn):
                         trainable=is_training, scope='conv5')
 
     #self._act_summaries.append(net)
-    self._layers['head'] = net
+    #self._layers['head'] = net
     
     return net
 
   def _head_to_tail(self, net, is_training=True, reuse=False):
     with tf.variable_scope(self._scope, self._scope, reuse=reuse):
-      pool5_flat = slim.flatten(pool5, scope='flatten')
-      fc6 = slim.fully_connected(pool5_flat, 4096, scope='fc6')
+      net_flat = slim.flatten(net, scope='flatten')
+      fc6 = slim.fully_connected(net_flat, 4096, scope='fc6')
       if is_training:
         fc6 = slim.dropout(fc6, keep_prob=0.5, is_training=True, 
                             scope='dropout6')
