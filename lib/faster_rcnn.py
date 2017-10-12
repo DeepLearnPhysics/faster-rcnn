@@ -92,8 +92,8 @@ class faster_rcnn(object):
 
         self._num_anchors = self._num_scales * self._num_ratios
 
-        training = mode == 'TRAIN'
-        testing = mode == 'TEST'
+        training = (mode == 'TRAIN')
+        testing = (mode == 'TEST')
 
         #assert tag != None
 
