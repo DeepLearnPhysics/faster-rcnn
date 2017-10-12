@@ -9,4 +9,4 @@ lib/datasets/pycocotools/_mask.c
 lib/rcnn_utils/nms/*.c
 lib/rcnn_utils/bbox/*.c
 data/*
-
+!data/toy

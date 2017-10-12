@@ -56,15 +56,25 @@ class faster_rcnn(object):
     def _add_train_summary(self, var):
         tf.summary.histogram('TRAIN/' + var.op.name, var)
 
+    def _image_to_head(self, is_training=True, reuse=False):
+        raise NotImplementedError
+
+    def _head_to_tail(self,net,trainable=True,reuse=False):
+        net = tf.reshape(net,(self._cfg.TRAIN.BATCH_SIZE,-1),name='fake_head_to_tail')
+        return net
+
     def configure(self,fname):
         import config
         self._cfg = config.cfg_from_file(fname)
         self._configure()
 
     def set_input_shape(self,tensor):
-        self._input_shape = tf.shape(tensor)
+        try:
+            self._input_shape = tf.shape(tensor)
+        except Exception:
+            self._input_shape = np.shape(tensor)
 
-    def create_architecture(self,net,  mode, num_classes, tag=None,
+    def create_architecture(self,net, num_classes, mode='TRAIN', tag=None,
                           anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
         self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
         self._im_info = tf.placeholder(tf.float32, shape=[3])
@@ -219,10 +229,6 @@ class faster_rcnn(object):
 
         return rois
 
-    def _head_to_tail(self,net,trainable=True):
-        net = tf.reshape(net,(self._cfg.TRAIN.BATCH_SIZE,-1),name='fake_head_to_tail')
-        return net
-
     def _build_network(self, net, trainable=True):
         # select initializers
         if self._cfg.TRAIN.TRUNCATED:
@@ -244,12 +250,11 @@ class faster_rcnn(object):
             else:
                 raise NotImplementedError
 
-        fc7 = self._head_to_tail(rpn_pooling, trainable)
+        rcnn_input = self._head_to_tail(rpn_pooling, trainable)
         with tf.variable_scope('faster_rcnn','faster_rcnn'):
             # region classification
-            cls_prob, bbox_pred = self._region_classification_2d(fc7, trainable, 
+            cls_prob, bbox_pred = self._region_classification_2d(rcnn_input, trainable, 
                                                                  initializer, initializer_bbox)
-
         #self._score_summaries.update(self._predictions)
 
         return rois, cls_prob, bbox_pred

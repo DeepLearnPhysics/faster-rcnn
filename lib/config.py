@@ -93,15 +93,12 @@ __C.TRAIN.BATCH_SIZE = 128
 __C.TRAIN.FG_FRACTION = 0.25
 
 # Overlap threshold for a ROI to be considered foreground (if >= FG_THRESH)
-#__C.TRAIN.FG_THRESH = 0.5
-__C.TRAIN.FG_THRESH = 0.1
+__C.TRAIN.FG_THRESH = 0.5
 
 # Overlap threshold for a ROI to be considered background (class = 0 if
 # overlap in [LO, HI))
-#__C.TRAIN.BG_THRESH_HI = 0.5
-#__C.TRAIN.BG_THRESH_LO = 0.1
-__C.TRAIN.BG_THRESH_HI = 0.1
-__C.TRAIN.BG_THRESH_LO = 0.0
+__C.TRAIN.BG_THRESH_HI = 0.5
+__C.TRAIN.BG_THRESH_LO = 0.1
 
 # Use horizontally-flipped images during training?
 __C.TRAIN.USE_FLIPPED = True
@@ -160,8 +157,7 @@ __C.TRAIN.RPN_FG_FRACTION = 0.5
 __C.TRAIN.RPN_BATCHSIZE = 256
 
 # NMS threshold used on RPN proposals
-#__C.TRAIN.RPN_NMS_THRESH = 0.7
-__C.TRAIN.RPN_NMS_THRESH = 1000.0
+__C.TRAIN.RPN_NMS_THRESH = 0.7
 
 # Number of top scoring boxes to keep before apply NMS to RPN proposals
 __C.TRAIN.RPN_PRE_NMS_TOP_N = 12000

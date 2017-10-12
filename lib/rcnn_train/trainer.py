@@ -55,24 +55,6 @@ class SolverWrapper(object):
     print('Restoring model snapshots from {:s}'.format(sfile))
     self.saver.restore(sess, sfile)
     print('Restored.')
-    # Needs to restore the other hyper-parameters/states for training, (TODO xinlei) I have
-    # tried my best to find the random states so that it can be recovered exactly
-    # However the Tensorflow state is currently not available
-    with open(nfile, 'rb') as fid:
-      st0 = pickle.load(fid)
-      cur = pickle.load(fid)
-      perm = pickle.load(fid)
-      cur_val = pickle.load(fid)
-      perm_val = pickle.load(fid)
-      last_snapshot_iter = pickle.load(fid)
-
-      np.random.set_state(st0)
-      self.data_layer._cur = cur
-      self.data_layer._perm = perm
-      self.data_layer_val._cur = cur_val
-      self.data_layer_val._perm = perm_val
-
-    return last_snapshot_iter
 
   def get_variables_in_checkpoint_file(self, file_name):
     try:
@@ -90,7 +72,7 @@ class SolverWrapper(object):
       # Set the random seed for tensorflow
       tf.set_random_seed(cfg.RNG_SEED)
       # Build the main computation graph
-      layers = self.net.create_architecture('TRAIN', self.train_io.num_classes(), tag='default',
+      layers = self.net.create_architecture(self.train_io.num_classes(), 'TRAIN', tag='default',
                                             anchor_scales=cfg.ANCHOR_SCALES,
                                             anchor_ratios=cfg.ANCHOR_RATIOS)
       # Define the loss

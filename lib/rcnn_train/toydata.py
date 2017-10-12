@@ -23,6 +23,9 @@ class toydata_gen(object):
         self.rect_length0  = 20
         self.rect_length1  = 40
 
+    def num_classes(self):
+        return 3
+
     def set_line(self,mean,std,length):
         (self.line_num_mean,self.line_num_std,self.line_length) = (mean,std,length)
 
