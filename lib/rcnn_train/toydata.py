@@ -14,12 +14,12 @@ class toydata_gen(object):
         self.line_num_std  = 3
         self.line_length   = 100
 
-        self.square_num_mean = 2
-        self.square_num_std  = 1
+        self.square_num_mean = 1
+        self.square_num_std  = 2
         self.square_length   = 20
         
-        self.rect_num_mean = 2
-        self.rect_num_std  = 1
+        self.rect_num_mean = 1
+        self.rect_num_std  = 2
         self.rect_length0  = 20
         self.rect_length1  = 40
 
@@ -35,8 +35,7 @@ class toydata_gen(object):
     def forward(self,debug=False):
         """makes 512 x 512 images with normally distributed # of lines, squares, and rectangles
         of given sizes at uniformly distributed locations"""
-        
-        # randomly generate number of lines according to N(lineMu, lineSig)
+
         lineN = abs(int(npr.normal(self.line_num_mean, self.line_num_std)))
         # uniform-randomly generate position of line centers
         # note the 50-pixel buffer on the image edges
@@ -45,19 +44,22 @@ class toydata_gen(object):
         linePosX = map(int,npr.uniform(size=lineN)*(self.image_width  - self.line_length))
         linePosY = map(int,npr.uniform(size=lineN)*(self.image_height - self.line_length))
         linePos  = zip(linePosX, linePosY)
-    
-        # same for squares
-        sqN = abs(int(npr.normal(self.square_num_mean, self.square_num_std)))
-        sqPosX = map(int,npr.uniform(size=sqN)*(self.image_width  - self.square_length))
-        sqPosY = map(int,npr.uniform(size=sqN)*(self.image_height - self.square_length))
-        sqPos = zip(sqPosX, sqPosY)
-    
-        # same for rectangles
-        recN = abs(int(npr.normal(self.rect_num_mean, self.rect_num_std)))
-        recPosX = map(int,npr.uniform(size=recN)*(self.image_width  - self.rect_length0))
-        recPosY = map(int,npr.uniform(size=recN)*(self.image_height - self.rect_length1))
-        recPos = zip(recPosX, recPosY)
-    
+        
+        recN, sqN = (0,0)
+        while (recN+sqN) < 1:
+            
+            # same for squares
+            sqN = abs(int(npr.normal(self.square_num_mean, self.square_num_std)))
+            sqPosX = map(int,npr.uniform(size=sqN)*(self.image_width  - self.square_length))
+            sqPosY = map(int,npr.uniform(size=sqN)*(self.image_height - self.square_length))
+            sqPos = zip(sqPosX, sqPosY)
+            
+            # same for rectangles
+            recN = abs(int(npr.normal(self.rect_num_mean, self.rect_num_std)))
+            recPosX = map(int,npr.uniform(size=recN)*(self.image_width  - self.rect_length0))
+            recPosY = map(int,npr.uniform(size=recN)*(self.image_height - self.rect_length1))
+            recPos = zip(recPosX, recPosY)
+            
         # initialize canvas
         fig = np.zeros((self.image_width,self.image_height))
 
@@ -70,9 +72,9 @@ class toydata_gen(object):
             print "recPos: ", recPos
         
         # draw left-diagonal lines
-        for line_i in range(lineN):
-            fig[ [range(int(linePos[line_i][1]), int(linePos[line_i][1]+lineL/2**0.5))  ],
-                 [range(int(linePos[line_i][0]), int(linePos[line_i][0]+lineL/2**0.5))  ] ] = 1
+        #for line_i in range(lineN):
+        #    fig[ [range(int(linePos[line_i][1]), int(linePos[line_i][1]+lineL/2**0.5))  ],
+        #         [range(int(linePos[line_i][0]), int(linePos[line_i][0]+lineL/2**0.5))  ] ] = 1
             
         for sq_i in range(sqN):
             x1,y1 = (int(sqPos[sq_i][0]),int(sqPos[sq_i][1]))
@@ -83,10 +85,10 @@ class toydata_gen(object):
         for rec_i in range(recN):
             x1,y1 = (int(recPos[rec_i][0]),int(recPos[rec_i][1]))
             x2,y2 = (x1 + self.rect_length0, y1+self.rect_length1)
-            fig[y1:y2,x1,x2] = 1
+            fig[y1:y2,x1:x2] = 1
             rois.append([x1,y1,x2,y2,2])    
 
-        return fig,roi
+        return fig,rois
 
 if __name__ == '__main__':
     g = toydata_gen()
