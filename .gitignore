@@ -10,4 +10,5 @@ lib/rcnn_utils/nms/*.c
 lib/rcnn_utils/bbox/*.c
 data/*
 !data/toy
+!data/demo/*.jpg
 log/*
