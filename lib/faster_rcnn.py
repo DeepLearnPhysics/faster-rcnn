@@ -76,6 +76,13 @@ class faster_rcnn(object):
         except Exception:
             self._input_shape = np.shape(tensor)
 
+    def get_summary(self, sess, blobs):
+        feed_dict = {self._image: blobs['data'], self._input_shape: blobs['im_info'],
+                     self._gt_boxes: blobs['gt_boxes']}
+        summary = sess.run(self._summary_op_val, feed_dict=feed_dict)
+        
+        return summary
+
     def create_architecture(self, num_classes, mode='TRAIN', tag=None,
                             anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
         self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])

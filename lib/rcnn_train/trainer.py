@@ -230,8 +230,7 @@ class SolverWrapper(object):
       blobs = self.train_io.forward()
 
       now = time.time()
-      #if iter == 1 or now - last_summary_time > cfg.TRAIN.SUMMARY_INTERVAL:
-      if False:
+      if iter == 1 or now - last_summary_time > cfg.TRAIN.SUMMARY_INTERVAL:
         # Compute the graph with summary
         rpn_loss_cls, rpn_loss_box, loss_cls, loss_box, total_loss, summary = \
           self.net.train_step_with_summary(sess, blobs, train_op)
