@@ -41,10 +41,11 @@ class faster_rcnn(object):
         self._cfg = DEFAULT_CFG
         self._configure()
         # variable holders
-        self._predictions={}
-        self._anchor_targets={}
-        self._proposal_targets={}
+        self._predictions = {}
+        self._anchor_targets = {}
+        self._proposal_targets = {}
         self._losses = {}
+        self._variables_to_fix = {}
         # summary holders
         self._event_summaries = {}
         self._score_summaries = {}
@@ -321,7 +322,7 @@ class faster_rcnn(object):
             else:
                 print('\033[95mWARNING\033[00m no weights regularizer found ... you sure????')
                 
-            #self._event_summaries.update(self._losses)
+            self._event_summaries.update(self._losses)
             
             return loss
 
