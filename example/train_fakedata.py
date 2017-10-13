@@ -12,6 +12,6 @@ net = vgg()
 train_io = toydata_gen()
 val_io   = toydata_gen()
 
-train_net(net, 'out','log', train_io, val_io, '/stage/drinkingkazu/faster_rcnn/tf-faster-rcnn/data/imagenet_weights/vgg16.ckpt')
+train_net(net, 'out','log', train_io, val_io, '%s/data/vgg16.ckpt' % os.evnrion['RCNNDIR'])
 
 
