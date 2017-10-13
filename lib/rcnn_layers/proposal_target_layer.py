@@ -33,13 +33,15 @@ def proposal_target_layer_2d(rpn_rois, rpn_scores, gt_boxes, _num_classes):
     all_rois = np.vstack(
       (all_rois, np.hstack((zeros, gt_boxes[:, :-1])))
     )
+    print('proposal_target_layer_2d: all_rois ... {:s}'.format(all_rois.shape))
     # not sure if it a wise appending, but anyway i am not using it
     all_scores = np.vstack((all_scores, zeros))
+    print('proposal_target_layer_2d: all_scores ... {:s}'.format(all_scores.shape))
 
   num_images = 1
   rois_per_image = cfg.TRAIN.BATCH_SIZE / num_images
   fg_rois_per_image = np.round(cfg.TRAIN.FG_FRACTION * rois_per_image)
-
+  print('proposal_target_layer_2d: fg_rois_per_image {:g}'.format(fg_rois_per_image))
   # Sample rois with classification labels and bounding box regression
   # targets
   labels, rois, roi_scores, bbox_targets, bbox_inside_weights = _sample_rois(
@@ -47,14 +49,19 @@ def proposal_target_layer_2d(rpn_rois, rpn_scores, gt_boxes, _num_classes):
     rois_per_image, _num_classes)
 
   rois = rois.reshape(-1, 5)
+  print('proposal_target_layer_2d: rois {:s}'.format(rois.shape))
   roi_scores = roi_scores.reshape(-1)
+  print('proposal_target_layer_2d: roi_scores {:s}'.format(roi_scores.shape))
   labels = labels.reshape(-1, 1)
+  print('proposal_target_layer_2d: labels {:s}'.format(labels.shape))
   bbox_targets = bbox_targets.reshape(-1, _num_classes * 4)
+  print('proposal_target_layer_2d: bbox_targets {:s}'.format(bbox_targets.shape))
   bbox_inside_weights = bbox_inside_weights.reshape(-1, _num_classes * 4)
+  print('proposal_target_layer_2d: bbox_inside_weights {:s}'.format(bbox_inside_weights.shape))
   bbox_outside_weights = np.array(bbox_inside_weights > 0).astype(np.float32)
+  print('proposal_target_layer_2d: bbox_outside_weights {:s}'.format(bbox_outside_weights.shape))
 
-  print('rois @ proposal_target_layer: {:s}'.format(rois.shape))
-  print('labels @ proposal_target_layer: {:s}'.format(labels.shape))
+
 
   return rois, roi_scores, labels, bbox_targets, bbox_inside_weights, bbox_outside_weights
 
@@ -111,14 +118,17 @@ def _sample_rois(all_rois, all_scores, gt_boxes, fg_rois_per_image, rois_per_ima
   gt_assignment = overlaps.argmax(axis=1)
   max_overlaps = overlaps.max(axis=1)
   labels = gt_boxes[gt_assignment, 4]
-
+  print('_sample_rois: labels {:s}'.format(labels.shape))
+  print('_sample_rois: max_overlaps {:s} range %g => %g'.format(max_overlaps.shape,max_overlaps.min(),max_overlaps.max()))
+  print('_sample_rois: gt_assignment {:s}'.format(gt_assignment.shape))
   # Select foreground RoIs as those with >= FG_THRESH overlap
   fg_inds = np.where(max_overlaps >= cfg.TRAIN.FG_THRESH)[0]
   # Guard against the case when an image has fewer than fg_rois_per_image
   # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
   bg_inds = np.where((max_overlaps < cfg.TRAIN.BG_THRESH_HI) &
                      (max_overlaps >= cfg.TRAIN.BG_THRESH_LO))[0]
-
+  print('_sample_rois: fg_inds {:d}'.format(len(fg_inds)))
+  print('_sample_rois: bg_inds {:d}'.format(len(bg_inds)))
   # Small modification to the original version where we ensure a fixed number of regions are sampled
   if fg_inds.size > 0 and bg_inds.size > 0:
     fg_rois_per_image = min(fg_rois_per_image, fg_inds.size)
@@ -140,8 +150,10 @@ def _sample_rois(all_rois, all_scores, gt_boxes, fg_rois_per_image, rois_per_ima
 
   # The indices that we're selecting (both fg and bg)
   keep_inds = np.append(fg_inds, bg_inds)
+  print('_sample_rois: keep_inds {:d}'.format(len(keep_inds)))
   # Select sampled values from various arrays:
   labels = labels[keep_inds]
+  print('_sample_rois: labels {:s}'.format(labels.shape))
   # Clamp labels for the background RoIs to 0
   labels[int(fg_rois_per_image):] = 0
   rois = all_rois[keep_inds]

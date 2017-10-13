@@ -83,19 +83,21 @@ class toydata_gen(object):
             x1,y1 = (int(sqPos[sq_i][0]),int(sqPos[sq_i][1]))
             x2,y2 = (x1+self.square_length,y1+self.square_length)
             fig[y1:y2, x1:x2] = 1
-            rois.append([x1,y1,x2,y2,1])
+            rois.append([1,x1,y1,x2,y2])
 
         for rec_i in range(recN):
             x1,y1 = (int(recPos[rec_i][0]),int(recPos[rec_i][1]))
             x2,y2 = (x1 + self.rect_length0, y1+self.rect_length1)
             fig[y1:y2,x1:x2] = 1
-            rois.append([x1,y1,x2,y2,2])    
+            rois.append([2,x1,y1,x2,y2])    
 
         return fig,rois
 
     def forward(self):
         blob = {}
-        img, roi = make_data()
+        img, roi = self.make_data()
+        img = img.reshape([1,512,512,1])
+        img = np.concatenate([img,img,img],axis=3)
         blob['data'] = img
         blob['im_info'] = [1,self.image_height,self.image_width,1]
         blob['gt_boxes'] = roi
@@ -103,7 +105,7 @@ class toydata_gen(object):
 
 if __name__ == '__main__':
     g = toydata_gen()
-    fig,rois = g.forward()
+    fig,rois = g.make_data()
     #plt.imshow(fig)
     im.imsave('imdata.png', fig)
     print rois

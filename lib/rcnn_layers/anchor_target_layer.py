@@ -33,10 +33,12 @@ def anchor_target_layer_2d(height, width, gt_boxes, input_shape, _feat_stride, a
     (all_anchors[:, 1] >= -_allowed_border) &
     (all_anchors[:, 2] < input_shape[2] + _allowed_border) &  # width
     (all_anchors[:, 3] < input_shape[1] + _allowed_border)    # height
-  )
+  )[0]
   print('all_anchors {:s}'.format(all_anchors.shape))
-  print('inds_inside {:s}'.format(np.array(inds_inside).shape))
-  inds_inside = inds_inside[0]
+  print('height: {:g}'.format(input_shape[1]))
+  print('width:  {:g}'.format(input_shape[2]))
+  print('anchor height range: {:g} => {:g}'.format(all_anchors[:,3].min(),all_anchors[:,3].max()))
+  print('anchor width range: {:g} => {:g}'.format(all_anchors[:,2].min(),all_anchors[:,2].max()))
   print('inds_inside {:s}'.format(np.array(inds_inside).shape))
   # keep only inside anchors
   anchors = all_anchors[inds_inside, :]

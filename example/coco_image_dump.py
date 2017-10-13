@@ -1,8 +1,12 @@
 import matplotlib 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import _init_paths
-import sys, cv2
+
+import sys,os,cv2
+lib_path = os.path.join(os.environ['RCNNDIR'],'lib')
+if not lib_path in sys.path:
+    sys.path.insert(0,lib_path)
+
 #from trainval_net import combined_roidb
 from datasets.api import combined_roidb
 
@@ -32,6 +36,7 @@ for x in xrange(num_images):
     for i in xrange(len(classes)):
         c = classes[i]
         box = boxes[i]
+        print('Class {:s} @ bbox {:s}'.format(CLASSES[c],box))
         ax.add_patch(plt.Rectangle( (box[0],box[1]), 
                                     box[2]-box[0], 
                                     box[3]-box[1], 

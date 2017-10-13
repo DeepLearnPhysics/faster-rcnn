@@ -309,11 +309,11 @@ class faster_rcnn(object):
             # Now make L1 loss
             loss_box = self._smooth_l1_loss(bbox_pred, bbox_targets, bbox_inside_weights, bbox_outside_weights)
             
-            #self._losses['cross_entropy'] = cross_entropy
-            #self._losses['loss_box'] = loss_box
-            #self._losses['rpn_cross_entropy'] = rpn_cross_entropy
-            #self._losses['rpn_loss_box'] = rpn_loss_box
-            
+            self._losses['cross_entropy'] = cross_entropy
+            self._losses['loss_box'] = loss_box
+            self._losses['rpn_cross_entropy'] = rpn_cross_entropy
+            self._losses['rpn_loss_box'] = rpn_loss_box
+
             loss = cross_entropy + loss_box + rpn_cross_entropy + rpn_loss_box
 
             if len(tf.losses.get_regularization_losses())>0:

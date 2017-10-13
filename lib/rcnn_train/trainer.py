@@ -143,10 +143,9 @@ class SolverWrapper(object):
     # Get the variables to restore, ignoring the variables to fix
     var_keep_dic = self.get_variables_in_checkpoint_file(self.pretrained_model)
     variables_to_restore = self.net.get_variables_to_restore(variables, var_keep_dic)
-    if len(variables_to_restore):
-      restorer = tf.train.Saver(variables_to_restore)
-      restorer.restore(sess, self.pretrained_model)
-      print('Loaded.')
+    restorer = tf.train.Saver(variables_to_restore)
+    restorer.restore(sess, self.pretrained_model)
+    print('Loaded.')
     # Need to fix the variables before loading, so that the RGB weights are changed to BGR
     # For VGG16 it also changes the convolutional weights fc6 and fc7 to
     # fully connected weights
@@ -228,16 +227,17 @@ class SolverWrapper(object):
 
       timer.tic()
       # Get training data, one batch at a time
-      blobs = self.data_layer.forward()
+      blobs = self.train_io.forward()
 
       now = time.time()
-      if iter == 1 or now - last_summary_time > cfg.TRAIN.SUMMARY_INTERVAL:
+      #if iter == 1 or now - last_summary_time > cfg.TRAIN.SUMMARY_INTERVAL:
+      if False:
         # Compute the graph with summary
         rpn_loss_cls, rpn_loss_box, loss_cls, loss_box, total_loss, summary = \
           self.net.train_step_with_summary(sess, blobs, train_op)
         self.writer.add_summary(summary, float(iter))
         # Also check the summary on the validation set
-        blobs_val = self.data_layer_val.forward()
+        blobs_val = self.val_io.forward()
         summary_val = self.net.get_summary(sess, blobs_val)
         self.valwriter.add_summary(summary_val, float(iter))
         last_summary_time = now
