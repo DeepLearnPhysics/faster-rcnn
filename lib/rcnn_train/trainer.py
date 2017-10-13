@@ -141,9 +141,9 @@ class SolverWrapper(object):
     sess.run(tf.variables_initializer(variables, name='init'))
 
     # Get the variables to restore, ignoring the variables to fix
-    if self.pretrained_model is not None:
-      var_keep_dic = self.get_variables_in_checkpoint_file(self.pretrained_model)
-      variables_to_restore = self.net.get_variables_to_restore(variables, var_keep_dic)
+    var_keep_dic = self.get_variables_in_checkpoint_file(self.pretrained_model)
+    variables_to_restore = self.net.get_variables_to_restore(variables, var_keep_dic)
+    if len(variables_to_restore):
       restorer = tf.train.Saver(variables_to_restore)
       restorer.restore(sess, self.pretrained_model)
       print('Loaded.')
