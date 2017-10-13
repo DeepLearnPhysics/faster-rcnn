@@ -59,3 +59,44 @@ class vgg(faster_rcnn):
 
     return rcnn_input
 
+  def get_variables_to_restore(self, variables, var_keep_dic):
+    variables_to_restore = []
+
+    for v in variables:
+      # exclude the conv weights that are fc weights in vgg16
+      if v.name == (self._scope + '/fc6/weights:0') or \
+         v.name == (self._scope + '/fc7/weights:0'):
+        self._variables_to_fix[v.name] = v
+        continue
+      # exclude the first conv layer to swap RGB to BGR
+      if v.name == (self._scope + '/conv1/conv1_1/weights:0'):
+        self._variables_to_fix[v.name] = v
+        continue
+      if var_keep_dic is not None and v.name.split(':')[0] in var_keep_dic:
+        print('Variables restored: %s' % v.name)
+        variables_to_restore.append(v)
+
+    return variables_to_restore
+
+  def fix_variables(self, sess, pretrained_model):
+    print('Fix VGG16 layers..')
+    with tf.variable_scope('Fix_VGG16') as scope:
+      with tf.device("/cpu:0"):
+        # fix the vgg16 issue from conv weights to fc weights
+        # fix RGB to BGR
+        fc6_conv = tf.get_variable("fc6_conv", [7, 7, 512, 4096], trainable=False)
+        fc7_conv = tf.get_variable("fc7_conv", [1, 1, 4096, 4096], trainable=False)
+        conv1_rgb = tf.get_variable("conv1_rgb", [3, 3, 3, 64], trainable=False)
+        restorer_fc = tf.train.Saver({self._scope + "/fc6/weights": fc6_conv, 
+                                      self._scope + "/fc7/weights": fc7_conv,
+                                      self._scope + "/conv1/conv1_1/weights": conv1_rgb})
+        restorer_fc.restore(sess, pretrained_model)
+
+        sess.run(tf.assign(self._variables_to_fix[self._scope + '/fc6/weights:0'], tf.reshape(fc6_conv, 
+                            self._variables_to_fix[self._scope + '/fc6/weights:0'].get_shape())))
+        sess.run(tf.assign(self._variables_to_fix[self._scope + '/fc7/weights:0'], tf.reshape(fc7_conv, 
+                            self._variables_to_fix[self._scope + '/fc7/weights:0'].get_shape())))
+        sess.run(tf.assign(self._variables_to_fix[self._scope + '/conv1/conv1_1/weights:0'], 
+                            tf.reverse(conv1_rgb, [2])))
+
+        
