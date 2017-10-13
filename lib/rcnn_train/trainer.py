@@ -57,9 +57,11 @@ class SolverWrapper(object):
     print('Restored.')
 
   def get_variables_in_checkpoint_file(self, file_name):
+    print('\033[93m HEY HEY HEY \033[00m')
     try:
       reader = pywrap_tensorflow.NewCheckpointReader(file_name)
       var_to_shape_map = reader.get_variable_to_shape_map()
+      print('var_to_shape_map {:s}'.format(var_to_shape_map))
       return var_to_shape_map 
     except Exception as e:  # pylint: disable=broad-except
       print(str(e))
@@ -137,14 +139,14 @@ class SolverWrapper(object):
     variables = tf.global_variables()
     # Initialize all variables first
     sess.run(tf.variables_initializer(variables, name='init'))
-    var_keep_dic = self.get_variables_in_checkpoint_file(self.pretrained_model)
 
     # Get the variables to restore, ignoring the variables to fix
-    variables_to_restore = self.net.get_variables_to_restore(variables, var_keep_dic)
-
-    restorer = tf.train.Saver(variables_to_restore)
-    restorer.restore(sess, self.pretrained_model)
-    print('Loaded.')
+    if self.pretrained_model is not None:
+      var_keep_dic = self.get_variables_in_checkpoint_file(self.pretrained_model)
+      variables_to_restore = self.net.get_variables_to_restore(variables, var_keep_dic)
+      restorer = tf.train.Saver(variables_to_restore)
+      restorer.restore(sess, self.pretrained_model)
+      print('Loaded.')
     # Need to fix the variables before loading, so that the RGB weights are changed to BGR
     # For VGG16 it also changes the convolutional weights fc6 and fc7 to
     # fully connected weights

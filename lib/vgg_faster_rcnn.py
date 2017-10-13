@@ -90,7 +90,8 @@ class vgg(faster_rcnn):
         restorer_fc = tf.train.Saver({self._scope + "/fc6/weights": fc6_conv, 
                                       self._scope + "/fc7/weights": fc7_conv,
                                       self._scope + "/conv1/conv1_1/weights": conv1_rgb})
-        restorer_fc.restore(sess, pretrained_model)
+        if pretrained_model is not None:
+          restorer_fc.restore(sess, pretrained_model)
 
         sess.run(tf.assign(self._variables_to_fix[self._scope + '/fc6/weights:0'], tf.reshape(fc6_conv, 
                             self._variables_to_fix[self._scope + '/fc6/weights:0'].get_shape())))
