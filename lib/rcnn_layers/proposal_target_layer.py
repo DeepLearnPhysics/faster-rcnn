@@ -119,7 +119,7 @@ def _sample_rois(all_rois, all_scores, gt_boxes, fg_rois_per_image, rois_per_ima
   max_overlaps = overlaps.max(axis=1)
   labels = gt_boxes[gt_assignment, 4]
   print('_sample_rois: labels {:s}'.format(labels.shape))
-  print('_sample_rois: max_overlaps {:s} range %g => %g'.format(max_overlaps.shape,max_overlaps.min(),max_overlaps.max()))
+  print('_sample_rois: max_overlaps {:s} range {:g} => {:g}'.format(max_overlaps.shape,max_overlaps.min(),max_overlaps.max()))
   print('_sample_rois: gt_assignment {:s}'.format(gt_assignment.shape))
   # Select foreground RoIs as those with >= FG_THRESH overlap
   fg_inds = np.where(max_overlaps >= cfg.TRAIN.FG_THRESH)[0]

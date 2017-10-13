@@ -10,6 +10,30 @@ import numpy.random as npr
 import numpy as np
 import cv2
 
+def _filter_roidb(roidb,cfg):
+  """Remove roidb entries that have no usable RoIs."""
+
+  def is_valid(entry):
+    # Valid images have:
+    #   (1) At least one foreground RoI OR
+    #   (2) At least one background RoI
+    overlaps = entry['max_overlaps']
+    # find boxes with sufficient overlap
+    fg_inds = np.where(overlaps >= cfg.TRAIN.FG_THRESH)[0]
+    # Select background RoIs as those within [BG_THRESH_LO, BG_THRESH_HI)
+    bg_inds = np.where((overlaps < cfg.TRAIN.BG_THRESH_HI) &
+                       (overlaps >= cfg.TRAIN.BG_THRESH_LO))[0]
+    # image is only valid if such boxes exist
+    valid = len(fg_inds) > 0 or len(bg_inds) > 0
+    return valid
+
+  num = len(roidb)
+  filtered_roidb = [entry for entry in roidb if is_valid(entry)]
+  num_after = len(filtered_roidb)
+  print('Filtered {} roidb entries: {} -> {}'.format(num - num_after,
+                                                     num, num_after))
+  return filtered_roidb
+
 class cocodata_gen(object):
     
     CLASSES = ('__background__',
@@ -19,9 +43,12 @@ class cocodata_gen(object):
                'motorbike', 'person', 'pottedplant',
                'sheep', 'sofa', 'train', 'tvmonitor')
 
-    def __init__(self):
+    def __init__(self,cfg=None):
         
         _,self.roidb = combined_roidb('voc_2007_trainval')
+        
+        if cfg is not None:
+            self.roidb = _filter_roidb(self.roidb,cfg)
 
     def num_classes(self):
 

@@ -9,8 +9,8 @@ from rcnn_train.cocodata import cocodata_gen
 from vgg_faster_rcnn import vgg
 
 net = vgg()
-train_io = cocodata_gen()
-val_io   = cocodata_gen()
+train_io = cocodata_gen(net._cfg)
+val_io   = cocodata_gen(net._cfg)
 
 train_net(net, 'out','log', train_io, val_io, '%s/data/vgg16.ckpt' % os.environ['RCNNDIR'])
 

@@ -37,8 +37,19 @@ def anchor_target_layer_2d(height, width, gt_boxes, input_shape, _feat_stride, a
   print('all_anchors {:s}'.format(all_anchors.shape))
   print('height: {:g}'.format(input_shape[1]))
   print('width:  {:g}'.format(input_shape[2]))
-  print('anchor height range: {:g} => {:g}'.format(all_anchors[:,3].min(),all_anchors[:,3].max()))
-  print('anchor width range: {:g} => {:g}'.format(all_anchors[:,2].min(),all_anchors[:,2].max()))
+
+  temp_anchors0 = np.where( (all_anchors[:, 0] >= -_allowed_border) &
+                            (all_anchors[:, 1] >= -_allowed_border) 
+                          )[0]
+  temp_anchors1 = np.where( (all_anchors[:, 2] < input_shape[2] + _allowed_border) &
+                            (all_anchors[:, 3] < input_shape[1] + _allowed_border)
+                           )[0]
+  print('temp_anchors0 {:s}'.format(temp_anchors0.shape))
+  print('temp_anchors1 {:s}'.format(temp_anchors1.shape))
+  print('anchor bottom-left-width  range: {:g} => {:g}'.format(all_anchors[:,0].min(),all_anchors[:,2].max()))
+  print('anchor bottom-left-height range: {:g} => {:g}'.format(all_anchors[:,1].min(),all_anchors[:,3].max()))
+  print('anchor top-right-width  range: {:g} => {:g}'.format(all_anchors[:,2].min(),all_anchors[:,2].max()))
+  print('anchor top-right-height range: {:g} => {:g}'.format(all_anchors[:,3].min(),all_anchors[:,3].max()))
   print('inds_inside {:s}'.format(np.array(inds_inside).shape))
   # keep only inside anchors
   anchors = all_anchors[inds_inside, :]
