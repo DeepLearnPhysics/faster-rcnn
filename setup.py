@@ -104,6 +104,7 @@ class custom_build_ext(build_ext):
         customize_compiler_for_nvcc(self.compiler)
         build_ext.build_extensions(self)
 
+
 ext_modules = [
     Extension(
         'lib.datasets.pycocotools._mask',
