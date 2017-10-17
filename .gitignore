@@ -12,3 +12,4 @@ data/*
 !data/toy
 !data/demo/*.jpg
 log/*
+log_val/*
