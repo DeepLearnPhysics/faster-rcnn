@@ -42,8 +42,41 @@ The current goal is to reproduce the results in Xinlei's paper. The network does
   make
   ```
 
-### Setup data for training
+### Setup data for training (py-faster-rcnn has more detailed instructions [here](https://github.com/rbgirshick/py-faster-rcnn#beyond-the-demo-installation-for-training-and-testing-models))
+1. Download the training, validation, test data and VOCdevkit
 
+   ```Shell
+   wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtrainval_06-Nov-2007.tar
+   wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar
+   wget http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCdevkit_08-Jun-2007.tar
+   ```
+
+2. Extract all of these tars into one directory named `VOCdevkit`
+
+   ```Shell
+   tar xvf VOCtrainval_06-Nov-2007.tar
+   tar xvf VOCtest_06-Nov-2007.tar
+   tar xvf VOCdevkit_08-Jun-2007.tar
+   ```
+
+3. It should have this basic structure
+
+   ```Shell
+   $VOCdevkit/                           # development kit
+   $VOCdevkit/VOCcode/                   # VOC utility code
+   $VOCdevkit/VOC2007                    # image sets, annotations, etc.
+   # ... and several other directories ...
+   ```
+
+4. Create symlinks for the PASCAL VOC dataset
+
+   ```Shell
+    cd $FRCN_ROOT/data
+    ln -s $VOCdevkit VOCdevkit2007
+    ```
+    Using symlinks is a good idea because you will likely want to share the same PASCAL dataset installation between multiple projects.
+5. [Optional] follow similar steps to get PASCAL VOC 2010 and 2012
+6. [Optional] for coco data set see py-faster-rcnn instruction [here](https://github.com/rbgirshick/py-faster-rcnn/tree/master/data)
 
 ### Train your own model
 1. Download pre-trained models and weights. The current code support VGG16. Pre-trained models are provided by slim, you can get the pre-trained models [here](https://github.com/tensorflow/models/tree/master/slim#pre-trained-models) and set them in the ``data`` folder. For example for VGG16 model, you can set up like:
@@ -57,6 +90,7 @@ The current goal is to reproduce the results in Xinlei's paper. The network does
 2. Train (and test, evaluation)
   ```Shell
   python example/train_coco.py
+  ```
 
 3. Visualization with Tensorboard
   ```Shell
