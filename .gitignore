@@ -18,3 +18,5 @@ data/*
 log/*
 log_val/*
 out/*
+output/*
+tensorboard/*
