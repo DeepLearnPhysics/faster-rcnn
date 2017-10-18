@@ -1,3 +1,8 @@
+# --------------------------------------------------------
+# Tensorflow Faster R-CNN
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Ji Won Park and Kazuhiro Terao
+# --------------------------------------------------------
 import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt

@@ -2,7 +2,7 @@
 # Tensorflow Faster R-CNN
 # Licensed under The MIT License [see LICENSE for details]
 # Original by Xinlei Chen (https://github.com/endernewton/tf-faster-rcnn)
-# Updated by Kazuhiro Terao (https://github.com/DeepLearnPhysics/faster-rcnn)
+# Updated by Kazuhiro Terao and Ji Won Park (https://github.com/DeepLearnPhysics/faster-rcnn)
 # --------------------------------------------------------
 from __future__ import absolute_import
 from __future__ import division

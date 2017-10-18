@@ -1,8 +1,11 @@
 # --------------------------------------------------------
-# Tensorflow Faster R-CNN
+# Faster R-CNN
+# Copyright (c) 2015 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
 # Original: Ross Girshick and Sean Bell (https://github.com/rbgirshick/py-faster-rcnn)
 # Updated: Xinlei Chen (https://github.com/endernewton/tf-faster-rcnn)
+# Updated: Kazuhiro Terao (https://github.com/DeepLearnPhysics/faster-rcnn)
+# in chronological order
 # --------------------------------------------------------
 """Fast R-CNN config system (original comment by Ross Girshick).
 This file specifies default config options for Fast R-CNN. You should not

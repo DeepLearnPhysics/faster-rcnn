@@ -6,6 +6,9 @@
 *.png
 *.jpg
 *.txt
+*.tgz
+*.tar
+*.gz
 lib/datasets/pycocotools/_mask.c
 lib/rcnn_utils/nms/*.c
 lib/rcnn_utils/bbox/*.c

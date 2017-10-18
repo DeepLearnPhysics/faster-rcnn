@@ -16,6 +16,6 @@ net = vgg()
 train_io = cocodata_gen(net._cfg)
 val_io   = cocodata_gen(net._cfg)
 
-train_net(net, 'out','log', train_io, val_io, '%s/data/vgg16.ckpt' % os.environ['RCNNDIR'])
+train_net(net, 'output/vgg','tensorboard/vgg', train_io, val_io, '%s/data/vgg16.ckpt' % os.environ['RCNNDIR'])
 
 

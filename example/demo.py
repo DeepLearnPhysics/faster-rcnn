@@ -3,6 +3,7 @@
 # Tensorflow Faster R-CNN
 # Licensed under The MIT License [see LICENSE for details]
 # Written by Xinlei Chen, based on code from Ross Girshick
+# Updated by Kazuhiro Terao
 # --------------------------------------------------------
 
 """

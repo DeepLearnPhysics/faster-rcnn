@@ -1,3 +1,10 @@
+# --------------------------------------------------------
+# Faster R-CNN
+# Copyright (c) 2015 Microsoft
+# Licensed under The MIT License [see LICENSE for details]
+# Original: Kazuhiro Terao (https://github.com/DeepLearnPhysics/faster-rcnn)
+# --------------------------------------------------------
+
 import sys,os
 
 lib_path = os.path.join(os.environ['RCNNDIR'],'lib')
