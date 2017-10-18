@@ -86,7 +86,6 @@ class faster_rcnn(object):
     def create_architecture(self, num_classes, mode='TRAIN', tag=None,
                             anchor_scales=(8, 16, 32), anchor_ratios=(0.5, 1, 2)):
         self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
-        self._im_info = tf.placeholder(tf.float32, shape=[3])
         self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
         #self._tag = tag
 
@@ -130,8 +129,8 @@ class faster_rcnn(object):
         #    self._train_summaries.append(var)
 
         if testing:
-            stds = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_STDS), (self._num_classes))
-            means = np.tile(np.array(cfg.TRAIN.BBOX_NORMALIZE_MEANS), (self._num_classes))
+            stds = np.tile(np.array(self._cfg.TRAIN.BBOX_NORMALIZE_STDS), (self._num_classes))
+            means = np.tile(np.array(self._cfg.TRAIN.BBOX_NORMALIZE_MEANS), (self._num_classes))
             self._predictions["bbox_pred"] *= stds
             self._predictions["bbox_pred"] += means
         else:
@@ -221,7 +220,7 @@ class faster_rcnn(object):
                 rois, _ = self._proposal_target_layer_2d(rois, roi_scores, "proposal_target_layer_2d")
 
         elif TEST_MODE == 'nms':
-            rois, _ = self._proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred, "proposal_layer_2d")
+            rois, _ = self._proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred, trainable, "proposal_layer_2d")
 
         elif TEST_MODE == 'top':
             #rois, _ = self._proposal_top_layer(rpn_cls_prob, rpn_bbox_pred, "proposal_layer_2d")
@@ -234,7 +233,7 @@ class faster_rcnn(object):
         #self._predictions["rpn_cls_prob"] = rpn_cls_prob
         #self._predictions["rpn_cls_pred"] = rpn_cls_pred
         self._predictions["rpn_bbox_pred"] = rpn_bbox_pred
-        #self._predictions["rois"] = rois
+        self._predictions["rois"] = rois
 
         return rois
 
@@ -470,6 +469,17 @@ class faster_rcnn(object):
         self._predictions["bbox_pred"] = bbox_pred
 
         return cls_prob, bbox_pred
+
+    def test_image(self, sess, image, input_shape):
+        feed_dict = {self._image: image,
+                     self._input_shape: input_shape}
+        
+        cls_score, cls_prob, bbox_pred, rois = sess.run([self._predictions["cls_score"],
+                                                         self._predictions['cls_prob'],
+                                                         self._predictions['bbox_pred'],
+                                                         self._predictions['rois']],
+                                                        feed_dict=feed_dict)
+        return cls_score, cls_prob, bbox_pred, rois
 
     def train_step(self, sess, blobs, train_op):
         feed_dict = {self._image: blobs['data'], self._input_shape: blobs['im_info'],
