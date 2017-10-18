@@ -5,6 +5,7 @@
 *.so
 *.png
 *.jpg
+*.txt
 lib/datasets/pycocotools/_mask.c
 lib/rcnn_utils/nms/*.c
 lib/rcnn_utils/bbox/*.c
@@ -13,3 +14,4 @@ data/*
 !data/demo/*.jpg
 log/*
 log_val/*
+out/*

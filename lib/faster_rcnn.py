@@ -433,8 +433,8 @@ class faster_rcnn(object):
 
     def _crop_pool_layer_2d(self, bottom, rois, name):
         with tf.variable_scope(name) as scope:
-            print('{:s}'.format(rois))
-            print('rois shape @ crop_pool_layer_2d {:s}'.format(rois.shape))
+            #print('{:s}'.format(rois))
+            #print('rois shape @ crop_pool_layer_2d {:s}'.format(rois.shape))
             batch_ids = tf.squeeze(tf.slice(rois, [0, 0], [-1, 1], name="batch_id"), [1])
             # Get the normalized coordinates of bounding boxes
             bottom_shape = tf.shape(bottom)

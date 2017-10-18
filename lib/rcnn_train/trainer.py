@@ -49,12 +49,14 @@ class SolverWrapper(object):
     self.saver.save(sess, filename)
     print('Wrote snapshot to: {:s}'.format(filename))
 
-    return filename, nfilename
+    return filename
 
-  def from_snapshot(self, sess, sfile, nfile):
+  def from_snapshot(self, sess, sfile):
     print('Restoring model snapshots from {:s}'.format(sfile))
+    num_iteration = int(sfile.split('_')[-1].replace('.ckpt',''))
     self.saver.restore(sess, sfile)
     print('Restored.')
+    return num_iteration
 
   def get_variables_in_checkpoint_file(self, file_name):
     print('\033[93m HEY HEY HEY \033[00m')
@@ -119,20 +121,11 @@ class SolverWrapper(object):
                       cfg.TRAIN.SNAPSHOT_PREFIX + '_iter_{:d}.ckpt.meta'.format(stepsize+1)))
     sfiles = [ss.replace('.meta', '') for ss in sfiles if ss not in redfiles]
 
-    nfiles = os.path.join(self.output_dir, cfg.TRAIN.SNAPSHOT_PREFIX + '_iter_*.pkl')
-    nfiles = glob.glob(nfiles)
-    nfiles.sort(key=os.path.getmtime)
-    redfiles = [redfile.replace('.ckpt.meta', '.pkl') for redfile in redfiles]
-    nfiles = [nn for nn in nfiles if nn not in redfiles]
-
     lsf = len(sfiles)
-    assert len(nfiles) == lsf
-
-    return lsf, nfiles, sfiles
+    return lsf, sfiles
 
   def initialize(self, sess):
     # Initial file lists are empty
-    np_paths = []
     ss_paths = []
     # Fresh train directly from ImageNet weights
     print('Loading initial model weights from {:s}'.format(self.pretrained_model))
@@ -155,14 +148,13 @@ class SolverWrapper(object):
     rate = cfg.TRAIN.LEARNING_RATE
     stepsizes = list(cfg.TRAIN.STEPSIZE)
 
-    return rate, last_snapshot_iter, stepsizes, np_paths, ss_paths
+    return rate, last_snapshot_iter, stepsizes, ss_paths
 
-  def restore(self, sess, sfile, nfile):
+  def restore(self, sess, sfile):
     # Get the most recent snapshot and restore
-    np_paths = [nfile]
     ss_paths = [sfile]
     # Restore model from snapshots
-    last_snapshot_iter = self.from_snapshot(sess, sfile, nfile)
+    last_snapshot_iter = self.from_snapshot(sess, sfile)
     # Set the learning rate
     rate = cfg.TRAIN.LEARNING_RATE
     stepsizes = []
@@ -172,15 +164,9 @@ class SolverWrapper(object):
       else:
         stepsizes.append(stepsize)
 
-    return rate, last_snapshot_iter, stepsizes, np_paths, ss_paths
+    return rate, last_snapshot_iter, stepsizes, ss_paths
 
-  def remove_snapshot(self, np_paths, ss_paths):
-    to_remove = len(np_paths) - cfg.TRAIN.SNAPSHOT_KEPT
-    for c in range(to_remove):
-      nfile = np_paths[0]
-      os.remove(str(nfile))
-      np_paths.remove(nfile)
-
+  def remove_snapshot(self, ss_paths):
     to_remove = len(ss_paths) - cfg.TRAIN.SNAPSHOT_KEPT
     for c in range(to_remove):
       sfile = ss_paths[0]
@@ -200,15 +186,14 @@ class SolverWrapper(object):
     lr, train_op = self.construct_graph(sess)
 
     # Find previous snapshots if there is any to restore from
-    lsf, nfiles, sfiles = self.find_previous()
+    lsf, sfiles = self.find_previous()
 
     # Initialize the variables or restore them from the last snapshot
     if lsf == 0:
-      rate, last_snapshot_iter, stepsizes, np_paths, ss_paths = self.initialize(sess)
+      rate, last_snapshot_iter, stepsizes, ss_paths = self.initialize(sess)
     else:
-      rate, last_snapshot_iter, stepsizes, np_paths, ss_paths = self.restore(sess, 
-                                                                            str(sfiles[-1]), 
-                                                                            str(nfiles[-1]))
+      rate, last_snapshot_iter, stepsizes, ss_paths = self.restore(sess, str(sfiles[-1]))
+
     timer = Timer()
     iter = last_snapshot_iter + 1
     last_summary_time = time.time()
@@ -256,13 +241,12 @@ class SolverWrapper(object):
       # Snapshotting
       if iter % cfg.TRAIN.SNAPSHOT_ITERS == 0:
         last_snapshot_iter = iter
-        ss_path, np_path = self.snapshot(sess, iter)
-        np_paths.append(np_path)
+        ss_path = self.snapshot(sess, iter)
         ss_paths.append(ss_path)
 
         # Remove the old snapshots if there are too many
-        if len(np_paths) > cfg.TRAIN.SNAPSHOT_KEPT:
-          self.remove_snapshot(np_paths, ss_paths)
+        if len(ss_paths) > cfg.TRAIN.SNAPSHOT_KEPT:
+          self.remove_snapshot(ss_paths)
 
       iter += 1
 

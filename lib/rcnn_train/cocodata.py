@@ -104,7 +104,6 @@ class cocodata_gen(object):
         img,labels = (None,None)
         if self.cfg is None:
             img = cv2.imread(entry['image']).astype(np.float32)
-            print('{:g}, {:g}'.format(img.mean(),img.std()))
             bboxes  = entry['boxes']
             classes = entry['gt_classes']
             classes = classes.reshape(len(classes),1)
@@ -112,7 +111,6 @@ class cocodata_gen(object):
         else:
             # if config is given, do operation
             img,labels = self.prep_im_for_blob(entry, self.cfg.PIXEL_MEANS, self.cfg.TRAIN.SCALES[0], self.cfg.TRAIN.MAX_SIZE)
-            print('{:g}, {:g}'.format(img.mean(),img.std()))
 
         img = img[:,:,(2,1,0)]
 
