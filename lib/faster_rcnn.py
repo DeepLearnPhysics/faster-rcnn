@@ -51,6 +51,8 @@ class faster_rcnn(object):
         self._score_summaries = {}
         self._train_summaries = []
         #self._act_summaries = []
+        self._scope = 'faster_rcnn'
+
 
     def _add_score_summary(self, key, tensor):
         tf.summary.histogram('SCORE/' + tensor.op.name + '/' + key + '/scores', tensor)
@@ -174,7 +176,7 @@ class faster_rcnn(object):
 
         # Step 0) Convolution for RPN/Detection shared layer
         rpn = slim.conv2d(net, 
-                          self._cfg.TRAIN.RPN_BATCHSIZE, 
+                          self._cfg.RPN_CHANNELS, 
                           self._cfg.TRAIN.RPN_KERNELS,
                           trainable=trainable, 
                           weights_initializer=rcnn_initializer,
@@ -247,7 +249,7 @@ class faster_rcnn(object):
             initializer_bbox = tf.random_normal_initializer(mean=0.0, stddev=0.001)
             
         net = self._image_to_head(trainable)
-        with tf.variable_scope('faster_rcnn','faster_rcnn'):
+        with tf.variable_scope(self._scope, self._scope):
             # build the anchors for the image
             self._generate_anchors_2d()
             # region proposal network
@@ -259,7 +261,7 @@ class faster_rcnn(object):
                 raise NotImplementedError
 
         rcnn_input = self._head_to_tail(rpn_pooling, trainable)
-        with tf.variable_scope('faster_rcnn','faster_rcnn'):
+        with tf.variable_scope(self._scope,self._scope):
             # region classification
             cls_prob, bbox_pred = self._region_classification_2d(rcnn_input, trainable, 
                                                                  initializer, initializer_bbox)
