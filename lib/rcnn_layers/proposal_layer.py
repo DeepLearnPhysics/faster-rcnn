@@ -26,6 +26,10 @@ def proposal_layer_2d(rpn_cls_prob, rpn_bbox_pred,
   # Step 0) Convert region proposals based on anchors back to proposed boxes
   # Step 1) Select proposed boxes & scores to be kept
   #
+  print('pre_nms_topN: {:g}'.format(pre_nms_topN))
+  print('post_nms_topN: {:g}'.format(post_nms_topN))
+  print('nms_thresh: {:g}'.format(nms_thresh))
+  print('im_info: {:s}'.format(input_shape))
 
   # Get the scores and bounding boxes by keeping only "object exist" entries
   scores = rpn_cls_prob[:, :, :, num_base_anchors:]

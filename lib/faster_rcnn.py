@@ -90,7 +90,7 @@ class faster_rcnn(object):
         self._image = tf.placeholder(tf.float32, shape=[1, None, None, 3])
         self._gt_boxes = tf.placeholder(tf.float32, shape=[None, 5])
         #self._tag = tag
-
+        
         self._num_classes = num_classes
         self._mode = mode
         self._anchor_scales = anchor_scales
@@ -230,7 +230,7 @@ class faster_rcnn(object):
         else:
             raise NotImplementedError
 
-        #self._predictions["rpn_cls_score"] = rpn_cls_score
+        self._predictions["rpn_cls_score"] = rpn_cls_score
         self._predictions["rpn_cls_score_reshape"] = rpn_cls_score_reshape
         #self._predictions["rpn_cls_prob"] = rpn_cls_prob
         #self._predictions["rpn_cls_pred"] = rpn_cls_pred
@@ -266,6 +266,10 @@ class faster_rcnn(object):
             cls_prob, bbox_pred = self._region_classification_2d(rcnn_input, trainable, 
                                                                  initializer, initializer_bbox)
         #self._score_summaries.update(self._predictions)
+        self._predictions['rpn_pooling'] = rpn_pooling
+        self._predictions['rcnn_input'] = rcnn_input
+        self._predictions['temp_rois'] = rois
+        self._predictions['temp_net_conv'] = net
 
         return rois, cls_prob, bbox_pred
 
@@ -369,12 +373,17 @@ class faster_rcnn(object):
 
     def _proposal_layer_2d(self,rpn_cls_prob, rpn_bbox_pred, trainable, name):
         with tf.variable_scope(name) as scope:
+            pre_nms_topn   = np.int32(self._cfg.TRAIN.RPN_PRE_NMS_TOP_N)
+            post_nms_topn  = np.int32(self._cfg.TRAIN.RPN_POST_NMS_TOP_N)
+            rpn_nms_thresh = np.float32(self._cfg.TRAIN.RPN_NMS_THRESH)
+            if not trainable:
+                pre_nms_topn   = np.int32(self._cfg.TEST.RPN_PRE_NMS_TOP_N)
+                post_nms_topn  = np.int32(self._cfg.TEST.RPN_POST_NMS_TOP_N)
+                rpn_nms_thresh = np.float32(self._cfg.TEST.RPN_NMS_THRESH)
             rois, rpn_scores = tf.py_func(proposal_layer_2d,
                                           [rpn_cls_prob, rpn_bbox_pred, self._input_shape,
                                            self._total_stride, self._anchors, self._num_base_anchors,
-                                           np.int32(self._cfg.TRAIN.RPN_PRE_NMS_TOP_N),
-                                           np.int32(self._cfg.TRAIN.RPN_POST_NMS_TOP_N),
-                                           np.float32(self._cfg.TRAIN.RPN_NMS_THRESH)],
+                                           pre_nms_topn,post_nms_topn,rpn_nms_thresh],
                                           [tf.float32, tf.float32], name="proposal_layer_2d")
             rois.set_shape([None, 5])
             rpn_scores.set_shape([None, 1])
@@ -476,11 +485,22 @@ class faster_rcnn(object):
         feed_dict = {self._image: image,
                      self._input_shape: input_shape}
         
-        cls_score, cls_prob, bbox_pred, rois = sess.run([self._predictions["cls_score"],
-                                                         self._predictions['cls_prob'],
-                                                         self._predictions['bbox_pred'],
-                                                         self._predictions['rois']],
-                                                        feed_dict=feed_dict)
+        cls_score, cls_prob, bbox_pred, rois,rpn_bbox_pred, rpn_pooling, rcnn_input, temp_rois, temp_net_conv = sess.run([self._predictions["cls_score"],
+                                                                                                self._predictions['cls_prob'],
+                                                                                                self._predictions['bbox_pred'],
+                                                                                                self._predictions['rois'],
+                                                                                                self._predictions['rpn_bbox_pred'],
+                                                                                                self._predictions['rpn_pooling'],
+                                                                                                                          self._predictions['rcnn_input'],
+                                                                                                                          self._predictions['temp_rois'],
+                                                                                                                          self._predictions['temp_net_conv']],
+                                                                                               feed_dict=feed_dict)
+        print("values... {:s}".format(temp_rois.reshape([temp_rois.size])[:10]))
+        print("values... {:g}".format(temp_net_conv.reshape([temp_net_conv.size]).mean()))
+
+       # print("values... {:s}".format(rcnn_input.reshape([rcnn_input.size])[:10]))
+       # print("values... {:s}".format(rcnn_input.reshape([rcnn_input.size])[rcnn_input.size-10:]))
+
         return cls_score, cls_prob, bbox_pred, rois
 
     def train_step(self, sess, blobs, train_op):
