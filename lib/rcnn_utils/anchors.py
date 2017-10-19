@@ -13,7 +13,7 @@ from __future__ import print_function
 
 import numpy as np
 
-def generate_anchors_2d(width, height, total_strides=[-1,16,16,-1],
+def generate_anchors_2d(height, width, total_strides=[-1,16,16,-1],
                         anchor_scales=[8,16,32], anchor_ratios=[0.5,1,2]):
   anchors = generate_base_anchors_2d(base_size=total_strides[1:3],
                                      ratios=np.array(anchor_ratios), 
@@ -21,25 +21,33 @@ def generate_anchors_2d(width, height, total_strides=[-1,16,16,-1],
   #print('anchors {:s}'.format(anchors.shape))
   #print('width {:f}'.format(np.float32(width)))
   #print('height {:f}'.format(np.float32(height)))
+ # print('anchors before shift {:s}'.format(anchors[1000:1010]))
+ # print('x stride {:s}'.format(total_strides))
+
   A = anchors.shape[0]
   shift_x = np.arange(0, width ) * total_strides[2]
   shift_y = np.arange(0, height) * total_strides[1]
-  #print('shift_x {:s}'.format(shift_x))
-  #print('shift_y {:s}'.format(shift_y))
+
+ # print('shift_x {:s}'.format(shift_x))
+ # print('shift_y {:s}'.format(shift_y))
   shift_x, shift_y = np.meshgrid(shift_x, shift_y)
-  #print('shift_x {:s}'.format(shift_x))
-  #print('shift_y {:s}'.format(shift_y))
+ # print('shift_x {:s}'.format(shift_x))
+ # print('shift_y {:s}'.format(shift_y))
   shifts = np.vstack((shift_x.ravel(), shift_y.ravel(), shift_x.ravel(), shift_y.ravel())).transpose()
-  #print('shifts {:s}'.format(shifts.shape))
+ # print('shifts {:s}'.format(shifts[1000:1010]))
   K = shifts.shape[0]
-  #print('K={:d}, A={:d}'.format(K,A))
+ # print('K={:d}, A={:d}'.format(K,A))
   # width changes faster, so here it is H, W, C                                                                              
   anchors = anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
-  #print('anchors {:s}'.format(anchors.shape))
+ # print('anchors {:s}'.format(anchors[1000:1010]))
   anchors = anchors.reshape((K * A, 4)).astype(np.float32, copy=False)
-  #print('anchors {:s}'.format(anchors.shape))
+ # print('anchors {:s}'.format(anchors[1000:1010]))
   length = np.int32(anchors.shape[0])
   #print('# anchors {:d}'.format(length))
+
+ # print('anchors {:s}'.format(anchors[1000:1010]))      
+ # print('shape {:s}'.format(anchors.shape))
+
   return anchors, length
 
 def generate_base_anchors_2d(base_size=[16,16], ratios=[0.5, 1, 2],
