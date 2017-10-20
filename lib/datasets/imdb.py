@@ -16,7 +16,6 @@ import numpy as np
 import scipy.sparse
 from config import cfg
 
-
 class imdb(object):
   """Image database."""
 

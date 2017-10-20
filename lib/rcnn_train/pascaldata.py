@@ -17,7 +17,7 @@ import numpy.random as npr
 import numpy as np
 import cv2
 
-class cocodata_gen(object):
+class pascaldata_gen(object):
     
     CLASSES = ('__background__',
                'aeroplane', 'bicycle', 'bird', 'boat',
@@ -26,9 +26,9 @@ class cocodata_gen(object):
                'motorbike', 'person', 'pottedplant',
                'sheep', 'sofa', 'train', 'tvmonitor')
 
-    def __init__(self,cfg=None):
+    def __init__(self,keyword='voc_2007_trainval',cfg=None):
         
-        _,self.roidb = combined_roidb('voc_2007_trainval')
+        _,self.roidb = combined_roidb(keyword)
 
         self.cfg = cfg
         if cfg is not None:
@@ -141,7 +141,7 @@ class cocodata_gen(object):
 
 if __name__ == '__main__':
     from config import cfg
-    g=cocodata_gen(cfg)
+    g=pascaldata_gen(cfg=cfg)
     blob = g.forward()
     print blob['data'].shape
     print blob['im_info'].shape

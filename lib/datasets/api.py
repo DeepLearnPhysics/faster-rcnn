@@ -3,6 +3,7 @@ import sys
 
 USE_FLIPPED=0
 
+import datasets
 from datasets.factory import get_imdb
 import datasets.roidb as rdl_roidb
 

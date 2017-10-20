@@ -7,20 +7,24 @@ lib_path = os.path.join(os.environ['RCNNDIR'],'lib')
 if not lib_path in sys.path:
     sys.path.insert(0,lib_path)
 
+pascal_keyword='voc_2007_trainval'
+for argv in sys.argv:
+    if argv.startswith('pascal='): pascal_keyword=argv.replace('pascal=','')
+
 import numpy as np
-from rcnn_train.cocodata import cocodata_gen
+from rcnn_train.pascaldata import pascaldata_gen
 from config import cfg
 #cfg=None
 
-datagen = cocodata_gen(cfg)
+datagen = pascaldata_gen(keyword=pascal_keyword,cfg=cfg)
 
 num_images = 1
-if len(sys.argv)>1:
-    num_images = int(sys.argv[1])
+for argv in sys.argv:
+    if argv.isdigit(): num_images = int(argv)
 
 for x in xrange(num_images):
 
-    blob = datagen.forward(100)
+    blob = datagen.forward()
 
     labels = blob['gt_boxes']
     im = blob['data'][0]
