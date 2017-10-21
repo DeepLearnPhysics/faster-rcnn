@@ -39,6 +39,9 @@ cfg = __C
 #
 __C.TRAIN = edict()
 
+# Max number of iterations
+__C.TRAIN.MAX_ITERS = 100000
+
 # Initial learning rate
 __C.TRAIN.LEARNING_RATE = 0.001
 
@@ -101,7 +104,7 @@ __C.TRAIN.FG_THRESH = 0.5
 # Overlap threshold for a ROI to be considered background (class = 0 if
 # overlap in [LO, HI))
 __C.TRAIN.BG_THRESH_HI = 0.5
-__C.TRAIN.BG_THRESH_LO = 0.0 #0.1
+__C.TRAIN.BG_THRESH_LO = 0.1 #0.1
 
 # Use horizontally-flipped images during training?
 __C.TRAIN.USE_FLIPPED = True
@@ -114,7 +117,7 @@ __C.TRAIN.BBOX_REG = True
 __C.TRAIN.BBOX_THRESH = 0.5
 
 # Iterations between snapshots
-__C.TRAIN.SNAPSHOT_ITERS = 100
+__C.TRAIN.SNAPSHOT_ITERS = 1000
 
 # solver.prototxt specifies the snapshot path prefix, this adds an optional
 # infix to yield the path: <prefix>[_<infix>]_iters_XYZ.caffemodel

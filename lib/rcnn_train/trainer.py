@@ -60,7 +60,6 @@ class SolverWrapper(object):
     return num_iteration
 
   def get_variables_in_checkpoint_file(self, file_name):
-    print('\033[93m HEY HEY HEY \033[00m')
     try:
       reader = pywrap_tensorflow.NewCheckpointReader(file_name)
       var_to_shape_map = reader.get_variable_to_shape_map()
@@ -182,7 +181,7 @@ class SolverWrapper(object):
       os.remove(str(sfile_meta))
       ss_paths.remove(sfile)
 
-  def train_model(self, sess, max_iters):
+  def train_model(self, sess, max_iters = cfg.TRAIN.MAX_ITERS):
     # Construct the computation graph
     lr, train_op = self.construct_graph(sess)
 
@@ -260,7 +259,7 @@ class SolverWrapper(object):
 def train_net(network, output_dir, tb_dir,
               train_io, val_io=None,
               pretrained_model=None,
-              max_iters=40000):
+              max_iters=cfg.TRAIN.MAX_ITERS):
   """Train a Faster R-CNN network."""
   tfconfig = tf.ConfigProto(allow_soft_placement=True)
   tfconfig.gpu_options.allow_growth = True
